@@ -1,0 +1,5242 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at center, #1b0f00, #000);
+  font-family: "Cinzel", serif;
+  color: #fff3d6;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.drona-app {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Left Sidebar - Mode Selector */
+.mode-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 220px;
+  height: 100vh;
+  background: linear-gradient(180deg, rgba(27, 15, 0, 0.95), rgba(0, 0, 0, 0.95));
+  border-right: 3px solid #ff9900;
+  padding: 20px 15px;
+  z-index: 100;
+  overflow: hidden;
+  box-shadow: 5px 0 20px rgba(255, 153, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-title {
+  color: #ffd966;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 25px;
+  text-shadow: 0 0 15px #ffcc33;
+  border-bottom: 2px solid #ff9900;
+  padding-bottom: 10px;
+}
+
+/* Memory Saving Toggle */
+.memory-toggle-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+  padding: 0 8px;
+}
+
+.memory-toggle {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #cc7700;
+  border-radius: 8px;
+  color: #ffdd99;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.memory-toggle:hover {
+  background: rgba(255, 153, 0, 0.3);
+  border-color: #ffcc00;
+  transform: scale(1.02);
+}
+
+.memory-toggle.enabled {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: #4CAF50;
+  color: #90EE90;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.memory-toggle.disabled {
+  background: rgba(244, 67, 54, 0.3);
+  border-color: #F44336;
+  color: #EF9A9A;
+  box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+}
+
+.mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+.mode-sidebar .mode-btn {
+  width: 100%;
+  padding: 15px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #ff9900;
+  border-radius: 10px;
+  color: #ffdd99;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mode-sidebar .mode-btn:hover {
+  background: rgba(255, 153, 0, 0.25);
+  border-color: #ffcc00;
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(255, 153, 0, 0.5);
+}
+
+.mode-sidebar .mode-btn.active {
+  background: linear-gradient(135deg, #ff9900, #ffcc00);
+  border-color: #ffd966;
+  color: #000;
+  box-shadow: 0 0 20px rgba(255, 153, 0, 0.8);
+  transform: translateX(8px);
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.with-sidebar {
+  margin-left: 220px;
+}
+
+/* Moving aura effect */
+@keyframes auraMove {
+  0% {
+    background: radial-gradient(circle at 40% 40%, #2a1500, #000);
+  }
+  100% {
+    background: radial-gradient(circle at 60% 60%, #3a1f00, #000);
+  }
+}
+
+.background-aura {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  animation: auraMove 6s infinite alternate;
+  z-index: -1;
+  opacity: 0.8;
+}
+
+.guru-container {
+  text-align: center;
+  padding: 30px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.guru-lottie {
+  width: 220px;
+  margin: 0 auto;
+}
+
+.drona-title {
+  font-size: 1.5rem;
+  color: #ffd966;
+  text-shadow: 0 0 25px #ffcc33, 0 0 40px #ff9900;
+  margin: 20px auto;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+  max-width: 95%;
+  overflow: visible;
+}
+
+.sanskrit-text {
+  color: #ffcc66;
+  font-size: 18px;
+  font-family: "Noto Serif Devanagari", serif;
+  margin-top: 10px;
+  animation: fadeIn 4s ease-in-out infinite alternate;
+}
+
+.sanskrit-meaning {
+  color: #ffeb99;
+  font-size: 14px;
+}
+
+.subtitle {
+  color: #ffdd99;
+  font-size: 15px;
+  margin-top: 15px;
+}
+
+/* Vidya Selector */
+.vidya-selector {
+  background: rgba(139, 69, 19, 0.95);
+  border-top: 3px solid #ff9900;
+  padding: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.vidya-title {
+  color: #ffd966;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12px;
+  text-shadow: 0 0 10px #ffcc33;
+  border-bottom: 2px solid #ff9900;
+  padding-bottom: 8px;
+}
+
+.vidya-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vidya-flyout {
+  position: fixed;
+  left: 220px;
+  background: rgba(0, 0, 0, 0.92);
+  border: 3px solid #ffd966;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 0 25px rgba(255, 153, 0, 0.4), inset 0 0 15px rgba(255, 204, 51, 0.1);
+  z-index: 1000;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: vidyaPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateY(-5px);
+  scrollbar-width: thin;
+  scrollbar-color: #ff9900 rgba(255, 153, 0, 0.2);
+}
+
+.vidya-flyout .vidya-title {
+  margin-bottom: 6px;
+  font-size: 12px;
+  padding-bottom: 6px;
+}
+
+.vidya-flyout .vidya-buttons .vidya-btn {
+  opacity: 0;
+  transform: translateX(-20px) scale(0.98);
+  animation: flyFromVidya 0.35s ease forwards;
+}
+
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(1) { animation-delay: 0s; }
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(2) { animation-delay: 0.05s; }
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(3) { animation-delay: 0.1s; }
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(4) { animation-delay: 0.15s; }
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(5) { animation-delay: 0.2s; }
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(6) { animation-delay: 0.25s; }
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(7) { animation-delay: 0.3s; }
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(8) { animation-delay: 0.35s; }
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(9) { animation-delay: 0.4s; }
+.vidya-flyout .vidya-buttons .vidya-btn:nth-child(10) { animation-delay: 0.45s; }
+
+@keyframes vidyaPopIn {
+  0% { 
+    opacity: 0; 
+    transform: translateY(-15px) scale(0.92) rotateX(-10deg);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.02);
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(-5px) scale(1) rotateX(0deg);
+  }
+}
+
+@keyframes flyFromVidya {
+  0% { opacity: 0; transform: translateX(-20px) scale(0.85) rotateZ(-5deg); }
+  70% { opacity: 1; transform: translateX(5px) scale(1.05); }
+  100% { opacity: 1; transform: translateX(0) scale(1) rotateZ(0deg); }
+}
+
+.vidya-btn {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #cc7700;
+  border-radius: 8px;
+  color: #ffdd99;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vidya-btn:hover {
+  background: rgba(255, 153, 0, 0.3);
+  border-color: #ffcc00;
+  transform: translateX(5px) scale(1.02);
+  box-shadow: 0 0 12px rgba(255, 204, 0, 0.6), inset 0 0 8px rgba(255, 153, 0, 0.2);
+}
+
+.vidya-btn.active {
+  background: linear-gradient(135deg, #8b4513, #a0522d);
+  border-color: #ffd966;
+  color: #ffd966;
+  box-shadow: 0 0 15px rgba(255, 153, 0, 0.8);
+}
+
+/* Mode-Specific Header */
+.mode-header {
+  margin: 20px auto;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.6), rgba(160, 82, 45, 0.4));
+  border: 3px solid #ffd966;
+  border-radius: 12px;
+  max-width: 1000px;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+}
+
+.mode-title {
+  color: #ffd966;
+  font-size: 22px;
+  text-align: center;
+  margin: 0;
+  text-shadow: 0 0 15px #ffcc33;
+  animation: modeTitleGlow 2s ease-in-out infinite;
+}
+
+@keyframes modeTitleGlow {
+  0%, 100% {
+    text-shadow: 0 0 15px #ffcc33;
+  }
+  50% {
+    text-shadow: 0 0 25px #ff9900, 0 0 35px #ffcc00;
+  }
+}
+
+/* Mode-Specific Chat Container Themes */
+.chat-container.archery-mode {
+  border-color: #8b4513;
+  background: rgba(139, 69, 19, 0.2);
+}
+
+.chat-container.war-mode {
+  border-color: #8b0000;
+  background: rgba(139, 0, 0, 0.2);
+}
+
+.chat-container.meditation-mode {
+  border-color: #4b0082;
+  background: rgba(75, 0, 130, 0.2);
+}
+
+.chat-container.story-mode {
+  border-color: #2f4f4f;
+  background: rgba(47, 79, 79, 0.2);
+}
+
+.chat-container.weapons-mode {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.chat-container.vidya-mode {
+  border-color: #9370db;
+  background: rgba(147, 112, 219, 0.2);
+}
+
+/* ========== ARCHERY MODE UI ========== */
+.archery-training-ui {
+  max-width: 900px;
+  margin: 30px auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+.target-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(139, 69, 19, 0.3);
+  border: 3px solid #8b4513;
+  border-radius: 15px;
+  padding: 40px;
+}
+
+.target {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 10%, #ff0000 10% 20%, #fff 20% 30%, #ff0000 30% 40%, #fff 40% 50%, #000 50%);
+  position: relative;
+  animation: targetPulse 3s ease-in-out infinite;
+}
+
+.bullseye {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: #ffd700;
+  border-radius: 50%;
+  box-shadow: 0 0 20px #ffd700;
+}
+
+@keyframes targetPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.target-instruction {
+  color: #ffd966;
+  font-size: 16px;
+  margin-top: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.archery-chat {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #8b4513;
+  border-radius: 12px;
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.archery-message {
+  color: #ffdd99;
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(139, 69, 19, 0.3);
+  border-radius: 8px;
+}
+
+/* ========== WAR STRATEGY MODE UI ========== */
+.war-strategy-ui {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.battlefield {
+  background: rgba(139, 0, 0, 0.2);
+  border: 3px solid #8b0000;
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
+.formation-display {
+  text-align: center;
+}
+
+.formation {
+  font-size: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.formation span {
+  margin: 5px 0;
+  letter-spacing: 15px;
+}
+
+.formation-label {
+  color: #ff6666;
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.war-chat {
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #8b0000;
+  border-radius: 12px;
+  padding: 20px;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.war-message {
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(139, 0, 0, 0.3);
+  border-left: 4px solid #ff4444;
+  border-radius: 8px;
+}
+
+.war-label {
+  color: #ff6666;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.war-message p {
+  color: #ffcccc;
+  margin: 5px 0;
+}
+
+/* ========== MEDITATION MODE UI ========== */
+.meditation-ui {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 20px;
+  text-align: center;
+}
+
+.meditation-center {
+  background: rgba(75, 0, 130, 0.2);
+  border: 3px solid #4b0082;
+  border-radius: 50%;
+  width: 300px;
+  height: 300px;
+  margin: 0 auto 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.chakra-circle {
+  position: relative;
+  width: 150px;
+  height: 150px;
+}
+
+.om-center {
+  font-size: 60px;
+  color: #9370db;
+  position: relative;
+  z-index: 2;
+  animation: omGlow 3s ease-in-out infinite;
+}
+
+@keyframes omGlow {
+  0%, 100% { text-shadow: 0 0 20px #9370db; }
+  50% { text-shadow: 0 0 40px #9370db, 0 0 60px #4b0082; }
+}
+
+.energy-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  border: 2px solid #9370db;
+  border-radius: 50%;
+  animation: energyPulse 2s ease-out infinite;
+}
+
+@keyframes energyPulse {
+  0% {
+    width: 100px;
+    height: 100px;
+    opacity: 1;
+  }
+  100% {
+    width: 250px;
+    height: 250px;
+    opacity: 0;
+  }
+}
+
+.meditation-guide {
+  color: #b19cd9;
+  font-size: 16px;
+  font-style: italic;
+  margin-top: 15px;
+}
+
+.meditation-chat {
+  background: rgba(75, 0, 130, 0.2);
+  border: 2px solid #4b0082;
+  border-radius: 12px;
+  padding: 25px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.meditation-message {
+  color: #d8bfd8;
+  margin: 15px 0;
+  padding: 15px;
+  text-align: center;
+  font-style: italic;
+  font-size: 15px;
+}
+
+
+.question-box {
+  background: rgba(255, 69, 0, 0.3);
+  border-left: 5px solid #ff4500;
+  padding: 20px;
+  border-radius: 8px;
+  color: #ffccaa;
+  font-size: 16px;
+  margin: 15px 0;
+}
+
+.answer-box {
+  background: rgba(0, 100, 0, 0.3);
+  border-left: 5px solid #32cd32;
+  padding: 15px;
+  border-radius: 8px;
+  color: #ccffcc;
+  margin: 15px 0;
+}
+
+/* ========== WEAPONS MODE UI ========== */
+.weapons-ui {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.astra-display {
+  background: rgba(255, 215, 0, 0.15);
+  border: 3px solid #ffd700;
+  border-radius: 15px;
+  padding: 40px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.divine-weapon {
+  display: inline-block;
+}
+
+.weapon-glow {
+  font-size: 80px;
+  animation: weaponPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px #ffd700);
+}
+
+@keyframes weaponPulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(10deg); }
+}
+
+.weapon-name {
+  color: #ffd700;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 15px;
+  text-shadow: 0 0 15px #ffcc00;
+}
+
+.weapons-chat {
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 20px;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.weapon-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 8px;
+}
+
+.weapon-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.weapon-message p {
+  color: #ffe4b5;
+  margin: 0;
+}
+
+/* ========== VIDYA MODE UI ========== */
+.vidya-ui {
+  max-width: 850px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.vidya-shrine {
+  background: rgba(147, 112, 219, 0.2);
+  border: 3px solid #9370db;
+  border-radius: 15px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.knowledge-symbol {
+  font-size: 70px;
+  animation: symbolRotate 10s linear infinite;
+}
+
+@keyframes symbolRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.vidya-path {
+  color: #dda0dd;
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 15px;
+  text-shadow: 0 0 10px #9370db;
+  text-transform: uppercase;
+}
+
+.vidya-chat {
+  background: rgba(75, 0, 130, 0.3);
+  border: 2px solid #9370db;
+  border-radius: 12px;
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.vidya-message {
+  margin: 15px 0;
+  text-align: center;
+}
+
+.vidya-bubble {
+  display: inline-block;
+  background: rgba(147, 112, 219, 0.3);
+  border: 2px solid #9370db;
+  border-radius: 20px;
+  padding: 15px 25px;
+  color: #e6e6fa;
+  max-width: 80%;
+}
+
+/* ========== ITHIHAAASA (STORIES) MODE UI ========== */
+.ithihaasa-ui {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+  border: 3px solid #ffd966;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.15), rgba(160, 82, 45, 0.1));
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.2);
+  position: relative;
+}
+
+.ithihaasa-title {
+  text-align: center;
+  color: #ffd966;
+  margin-bottom: 10px;
+}
+
+.story-display {
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.story-section {
+  position: relative;
+  margin: 12px 0;
+  border: 2px solid #ffd966;
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.story-text { color: #ffdd99; }
+
+.story-fade-in { animation: fadeStory 0.4s ease; }
+
+.story-play {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #ffd966;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+@keyframes fadeStory {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.camera-circle {
+  position: fixed;
+  right: 20px;
+  top: 120px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #ffd966;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+}
+
+.camera-circle video { width: 100%; height: 100%; object-fit: cover; }
+
+
+.story-tooltip {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #ffd966;
+  border: 2px solid #ffd966;
+  border-radius: 8px;
+  padding: 8px 12px;
+  z-index: 1001;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+}
+
+/* ========== ASTRA MODE UI ========== */
+.astra-ui {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 20px;
+  border: 3px solid #ffd966;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(10, 25, 50, 0.3), rgba(0, 0, 20, 0.4));
+  box-shadow: 0 0 25px rgba(147, 112, 219, 0.2);
+}
+
+.astra-title { text-align: center; color: #ffd966; margin-bottom: 12px; }
+
+.astra-focus-bar { height: 4px; background: rgba(147, 112, 219, 0.2); border-radius: 4px; overflow: hidden; }
+.astra-focus { height: 100%; width: 40%; background: linear-gradient(90deg, #6a5acd, #9370db); animation: focusGlow 3s ease-in-out infinite alternate; }
+@keyframes focusGlow { 0% { width: 30%; } 100% { width: 70%; } }
+
+.astra-body { display: grid; grid-template-columns: 220px 1fr; gap: 16px; margin-top: 16px; }
+
+.astra-panel { background: rgba(0,0,0,0.6); border: 2px solid #ffd966; border-radius: 10px; padding: 10px; }
+.astra-item { width: 100%; margin: 6px 0; padding: 10px; background: rgba(0,0,0,0.7); border: 2px solid #9370db; border-radius: 8px; color: #ffdd99; font-weight: bold; cursor: pointer; }
+.astra-item.active { background: rgba(147,112,219,0.25); border-color: #ffd966; }
+
+.astra-teach { background: rgba(0,0,0,0.6); border: 2px solid #ffd966; border-radius: 10px; padding: 12px; min-height: 240px; }
+.astra-path { color: #dda0dd; font-weight: bold; margin-bottom: 8px; }
+.astra-segment { margin: 10px 0; padding: 10px; border: 1px dashed #9370db; border-radius: 8px; color: #e6e6fa; }
+
+.astra-lock { position: relative; top: -8px; right: 0; background: rgba(0,0,0,0.8); border: 2px solid #ffd966; color: #ffd966; border-radius: 8px; padding: 6px 10px; font-size: 12px; text-align: right; }
+
+.input-box {
+  margin-top: 25px;
+  text-align: center;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.input-box input {
+  width: 100%;
+  max-width: 500px;
+  padding: 12px 16px;
+  border: 2px solid #ffcc66;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 204, 102, 0.2);
+}
+
+.input-box input:focus {
+  border-color: #ff8c42;
+  box-shadow: 0 4px 20px rgba(255, 140, 66, 0.4);
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.input-box input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.input-box button {
+  margin-left: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(45deg, #ffcc00, #ff9900);
+  border: none;
+  border-radius: 8px;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 42px;
+  vertical-align: middle;
+}
+
+.input-box button:hover {
+  background: linear-gradient(45deg, #ffd966, #ffb347);
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 191, 0, 0.8);
+}
+
+.mic-btn {
+  font-size: 24px;
+  padding: 10px 15px !important;
+  background: linear-gradient(135deg, #ffcc33 0%, #ff9900 100%) !important;
+  border: 2px solid #ffd966 !important;
+  border-radius: 50% !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 42px !important;
+  width: 42px !important;
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 204, 51, 0.4);
+  position: relative;
+  color: #000 !important;
+}
+
+.mic-btn:hover {
+  background: linear-gradient(135deg, #ffd966 0%, #ffcc33 100%) !important;
+  box-shadow: 0 6px 25px rgba(255, 153, 0, 0.8) !important;
+  transform: translateY(-2px);
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.mic-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(255, 153, 0, 0.6) !important;
+}
+
+.mic-btn.listening {
+  background: linear-gradient(135deg, #ff9900 0%, #ffcc33 100%) !important;
+  box-shadow: 0 0 20px rgba(255, 153, 0, 1), 0 0 40px rgba(255, 153, 0, 0.6) !important;
+  animation: micPulseGold 0.6s ease-in-out infinite;
+  text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.mic-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: 0 4px 15px rgba(255, 153, 0, 0.2) !important;
+}
+
+@keyframes micPulseGold {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 153, 0, 1), 0 0 40px rgba(255, 153, 0, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 153, 0, 1), 0 0 60px rgba(255, 153, 0, 0.8);
+    transform: scale(1.1);
+  }
+}
+
+.mic-btn.listening {
+  background: linear-gradient(45deg, #ff4444, #cc0000) !important;
+  border-color: #ff6666 !important;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 68, 68, 1);
+    transform: scale(1.1);
+  }
+}
+
+.mic-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lang {
+  font-size: 14px;
+  margin-top: 10px;
+  color: #ffcc88;
+}
+
+/* Chat Container Styles */
+.chat-container {
+  width: 85%;
+  max-width: 1000px;
+  height: 400px;
+  margin: 20px auto;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #ffd966;
+  border-radius: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.chat-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+  background: #ffd966;
+  border-radius: 4px;
+}
+
+.chat-container::-webkit-scrollbar-thumb:hover {
+  background: #ffcc33;
+}
+
+.chat-welcome {
+  text-align: center;
+  color: #ffdd99;
+  font-size: 16px;
+  padding: 40px 20px;
+  opacity: 0.8;
+}
+
+.chat-message {
+  margin-bottom: 16px;
+  animation: fadeInMessage 0.3s ease-in;
+}
+
+@keyframes fadeInMessage {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-content {
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 85%;
+  word-wrap: break-word;
+}
+
+.user-message {
+  background: linear-gradient(135deg, #4a5568, #2d3748);
+  color: #fff;
+  margin-left: auto;
+  border: 1px solid #718096;
+}
+
+.guru-message {
+  background: linear-gradient(135deg, #3a2000, #1a0f00);
+  color: #ffd966;
+  margin-right: auto;
+  border: 1px solid #ffd966;
+}
+
+.guru-message.loading {
+  opacity: 0.7;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.error-message {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff6666;
+  border: 1px solid #ff6666;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.message-label {
+  font-weight: bold;
+}
+
+.message-time {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.message-content p {
+  margin: 0;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.guru-message.proactive {
+  background: linear-gradient(135deg, #4a2000, #2a1000);
+  border: 2px solid #ffcc33;
+  box-shadow: 0 0 20px rgba(255, 204, 51, 0.4);
+  animation: proactiveGlow 2s ease-in-out infinite;
+}
+
+@keyframes proactiveGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 204, 51, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 204, 51, 0.7);
+  }
+}
+
+.proactive-text {
+  font-style: italic;
+  color: #ffe699;
+}
+
+.answer-card {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #ffd966;
+  border-radius: 16px;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  padding: 20px;
+  margin: 30px auto;
+  width: 70%;
+  transition: all 0.4s ease;
+}
+
+.answer-card:hover {
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+}
+
+.answer-card h3 {
+  color: #ffcc33;
+}
+
+.speak-btn {
+  background: linear-gradient(45deg, #ffb347, #ffcc33);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: black;
+  font-weight: bold;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.speak-btn:hover {
+  background: radial-gradient(circle, #ffd966, #ffb347);
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 191, 0, 0.8);
+}
+
+footer {
+  margin-top: 40px;
+  font-size: 14px;
+  color: #ffdd99;
+  opacity: 0.9;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Initiation Modal */
+.initiation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.5s ease;
+}
+
+.initiation-content {
+  background: linear-gradient(135deg, #2a1500, #1a0f00);
+  border: 3px solid #ffd966;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+}
+
+.initiation-content h2 {
+  color: #ffd966;
+  font-size: 28px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 20px #ffcc33;
+}
+
+.initiation-text {
+  color: #ffdd99;
+  font-size: 16px;
+  line-height: 1.8;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.initiation-input {
+  width: 80%;
+  padding: 15px;
+  font-size: 18px;
+  border: 2px solid #ffd966;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  margin: 20px 0;
+  outline: none;
+  text-align: center;
+}
+
+.initiation-input:focus {
+  border-color: #ffcc33;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.initiation-btn {
+  padding: 15px 40px;
+  font-size: 18px;
+  font-weight: bold;
+  background: linear-gradient(45deg, #ffcc00, #ff9900);
+  border: none;
+  border-radius: 10px;
+  color: black;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.initiation-btn:hover {
+  background: linear-gradient(45deg, #ffd966, #ffb347);
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(255, 191, 0, 0.8);
+}
+
+/* Student Profile */
+.student-profile {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #ffd966;
+  border-radius: 12px;
+  padding: 15px;
+  min-width: 220px;
+  z-index: 999;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mode-sidebar {
+    width: 180px;
+  }
+  
+  .main-content.with-sidebar {
+    margin-left: 180px;
+  }
+  
+  .sidebar-title {
+    font-size: 16px;
+  }
+  
+  .mode-sidebar .mode-btn {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mode-sidebar {
+    width: 60px;
+    padding: 15px 5px;
+  }
+  
+  .main-content.with-sidebar {
+    margin-left: 60px;
+  }
+  
+  .sidebar-title {
+    font-size: 12px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+  
+  .mode-sidebar .mode-btn {
+    padding: 10px 5px;
+    font-size: 20px;
+    justify-content: center;
+  }
+  
+  .mode-sidebar .mode-btn span {
+    display: none;
+  }
+}
+
+.profile-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #ffdd99;
+  font-size: 14px;
+}
+
+.profile-label {
+  font-weight: bold;
+  color: #ffd966;
+}
+
+.profile-value {
+  color: #fff;
+}
+
+.respect-bar {
+  position: relative;
+  width: 120px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #ffd966;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.respect-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff9900, #ffcc00);
+  transition: width 0.5s ease;
+}
+
+.respect-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #000;
+  text-shadow: 0 0 3px #fff;
+}
+
+/* Camera View Styles */
+.camera-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  height: 240px;
+  border: 3px solid #ffd966;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  position: relative;
+}
+
+.camera-container::before {
+  content: '👁️ Guru is watching you';
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #ffd966;
+  font-size: 13px;
+  font-weight: bold;
+  z-index: 10;
+  text-shadow: 0 0 8px #000;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 4px;
+}
+
+.camera-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-label {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffd966;
+  font-size: 11px;
+  padding: 3px;
+  font-weight: bold;
+}
+
+.camera-toggle {
+  position: fixed;
+  bottom: 210px;
+  right: 20px;
+  padding: 8px 16px;
+  background: linear-gradient(45deg, #ffcc00, #ff9900);
+  border: 2px solid #ffcc66;
+  border-radius: 8px;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1001;
+  font-size: 14px;
+}
+
+.camera-toggle:hover {
+  background: linear-gradient(45deg, #ffd966, #ffb347);
+  box-shadow: 0 0 15px rgba(255, 191, 0, 0.8);
+  transform: scale(1.05);
+}
+
+.camera-error {
+  color: #ff6666;
+  font-size: 12px;
+  text-align: center;
+  padding: 10px;
+}
+
+/* ========== MODE-SPECIFIC UI THEMES ========== */
+
+/* Theme application to all relevant containers */
+.astras-theme,
+.astra-ui.astras-theme {
+  background: radial-gradient(ellipse at center, rgba(15, 20, 50, 0.9) 0%, rgba(5, 10, 30, 0.95) 100%) !important;
+  border: 3px solid #ffd966 !important;
+  box-shadow: 0 0 30px rgba(255, 217, 102, 0.4), inset 0 0 20px rgba(255, 217, 102, 0.1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.astras-theme::before,
+.astra-ui.astras-theme::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(255, 153, 0, 0.05) 0%, transparent 50%),
+              radial-gradient(circle at 80% 50%, rgba(255, 102, 0, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 📜 VIDYA MODE - Parchment/Scroll */
+.vidya-theme,
+.vidya-ui.vidya-theme {
+  background: linear-gradient(135deg, #f4e8d8 0%, #e8dcc8 50%, #dcd0c0 100%) !important;
+  border: 3px solid #8b7355 !important;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2), 0 0 20px rgba(139, 115, 85, 0.3) !important;
+  position: relative;
+}
+
+.vidya-theme::before,
+.vidya-ui.vidya-theme::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 115, 85, 0.03) 2px, rgba(139, 115, 85, 0.03) 4px),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 115, 85, 0.03) 2px, rgba(139, 115, 85, 0.03) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 🧘 DHYANA VIDYA - Calm Blue-White */
+.dhyana-theme,
+.vidya-ui.dhyana-theme {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 50%, #e0f4ff 100%) !important;
+  border: 3px solid #64b5f6 !important;
+  box-shadow: 0 0 25px rgba(100, 181, 246, 0.3), inset 0 0 15px rgba(100, 181, 246, 0.1) !important;
+}
+
+/* Floating particles for Dhyana */
+.dhyana-theme::after,
+.vidya-ui.dhyana-theme::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 2%),
+    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 2%),
+    radial-gradient(circle at 60% 20%, rgba(255, 255, 255, 0.35) 0%, transparent 2%),
+    radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 2%);
+  pointer-events: none;
+  animation: float 20s infinite ease-in-out;
+  z-index: 0;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ⚔️ KHADGA VIDYA - Steel-Grey Metallic */
+.khadga-theme,
+.vidya-ui.khadga-theme {
+  background: linear-gradient(135deg, #4a4a4a 0%, #5a5a5a 50%, #4a4a4a 100%) !important;
+  border: 3px solid #999 !important;
+  box-shadow: 0 0 20px rgba(200, 200, 200, 0.3), inset 0 0 15px rgba(255, 255, 255, 0.1) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  color: #e0e0e0 !important;
+}
+
+.khadga-theme .message,
+.khadga-theme .chat-message {
+  background: linear-gradient(135deg, #5a5a5a 0%, #6a6a6a 100%) !important;
+  border: 2px solid #999 !important;
+  color: #e0e0e0 !important;
+}
+
+/* 🏹 DHANUR VIDYA - Forest Green-Brown */
+.dhanur-theme,
+.vidya-ui.dhanur-theme {
+  background: linear-gradient(135deg, #556b2f 0%, #6b8e23 50%, #8b7355 100%) !important;
+  border: 3px solid #a0826d !important;
+  box-shadow: 0 0 25px rgba(107, 142, 35, 0.4), inset 0 0 15px rgba(139, 115, 85, 0.2) !important;
+}
+
+.dhanur-theme .message,
+.dhanur-theme .chat-message {
+  background: rgba(139, 115, 85, 0.7) !important;
+  border-left: 4px solid #d4a574 !important;
+  color: #f5deb3 !important;
+}
+
+/* 🔮 ASTRA VIDYA - Dark Blue Blueprint */
+.astra-theme,
+.vidya-ui.astra-theme {
+  background: linear-gradient(135deg, #0a1929 0%, #0f2847 50%, #081533 100%) !important;
+  border: 3px solid #00d4ff !important;
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.4), inset 0 0 20px rgba(0, 212, 255, 0.1) !important;
+  position: relative;
+}
+
+.astra-theme::before,
+.vidya-ui.astra-theme::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(45deg, transparent 30%, rgba(0, 212, 255, 0.05) 50%, transparent 70%),
+    linear-gradient(-45deg, transparent 30%, rgba(0, 212, 255, 0.05) 50%, transparent 70%);
+  animation: blueprintRotate 20s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes blueprintRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 🌿 AYURVEDA VIDYA - Green Herbal */
+.ayurveda-theme,
+.vidya-ui.ayurveda-theme {
+  background: linear-gradient(135deg, #2d5016 0%, #3d7024 50%, #4a8c2f 100%) !important;
+  border: 3px solid #90ee90 !important;
+  box-shadow: 0 0 25px rgba(144, 238, 144, 0.3), inset 0 0 15px rgba(144, 238, 144, 0.1) !important;
+  color: #e8f5e9 !important;
+}
+
+.ayurveda-theme::after,
+.vidya-ui.ayurveda-theme::after {
+  content: '🌿';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 40px;
+  opacity: 0.1;
+  z-index: 0;
+}
+
+/* ✨ JYOTISH VIDYA - Night Sky */
+.jyotish-theme,
+.vidya-ui.jyotish-theme {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1a4d 50%, #0d0d2b 100%) !important;
+  border: 3px solid #ffd700 !important;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.1) !important;
+  position: relative;
+  color: #e6e6ff !important;
+}
+
+/* Star effect for Jyotish */
+.jyotish-theme::before,
+.vidya-ui.jyotish-theme::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 10% 10%, #fff 1px, transparent 1px),
+    radial-gradient(circle at 25% 40%, #ffd700 1px, transparent 1px),
+    radial-gradient(circle at 50% 20%, #fff 1px, transparent 1px),
+    radial-gradient(circle at 75% 60%, #ffed4e 1px, transparent 1px),
+    radial-gradient(circle at 90% 30%, #fff 1px, transparent 1px);
+  background-size: 100px 100px;
+  animation: twinkle 3s infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* 🔥 TANTRA VIDYA - Red-Black Mystical */
+.tantra-theme,
+.vidya-ui.tantra-theme {
+  background: linear-gradient(135deg, #1a0000 0%, #4d0000 50%, #1a0000 100%) !important;
+  border: 3px solid #ff4444 !important;
+  box-shadow: 0 0 30px rgba(255, 68, 68, 0.3), inset 0 0 20px rgba(255, 68, 68, 0.1) !important;
+  color: #ffcccc !important;
+}
+
+.tantra-theme .message,
+.tantra-theme .chat-message {
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.2), rgba(200, 50, 50, 0.2)) !important;
+  border-left: 4px solid #ff6666 !important;
+  color: #ffcccc !important;
+}
+
+/* 🧘‍♂️ YOGA VIDYA - Beige Yoga Mat */
+.yoga-theme,
+.vidya-ui.yoga-theme {
+  background: linear-gradient(135deg, #e8d5c4 0%, #dcc8b8 50%, #d4bfad 100%) !important;
+  border: 3px solid #c9b8a3 !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1), inset 0 0 15px rgba(0, 0, 0, 0.05) !important;
+  color: #2d2d2d !important;
+}
+
+/* ⚔️🛡️ YUDHA VIDYA - War Map */
+.yudha-theme,
+.vidya-ui.yudha-theme {
+  background: linear-gradient(135deg, #2b1810 0%, #3d2817 50%, #2b1810 100%) !important;
+  border: 3px solid #8b4513 !important;
+  box-shadow: 0 0 25px rgba(139, 69, 19, 0.3), inset 0 0 15px rgba(139, 69, 19, 0.1) !important;
+  position: relative;
+  color: #f5deb3 !important;
+}
+
+.yudha-theme::before,
+.vidya-ui.yudha-theme::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(139,69,19,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 🛕 DHARMA VIDYA - Golden Temple */
+.dharma-theme,
+.vidya-ui.dharma-theme {
+  background: linear-gradient(135deg, #d4af37 0%, #f4d03f 50%, #daa520 100%) !important;
+  border: 3px solid #ffd700 !important;
+  border-radius: 15px !important;
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2) !important;
+  color: #2d2d2d !important;
+}
+
+.dharma-theme .message,
+.dharma-theme .chat-message {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 250, 205, 0.9)) !important;
+  color: #2d2d2d !important;
+  border: 2px solid #ffd700 !important;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3) !important;
+}
+
+/* Chat container base styles with proper z-index */
+.chat-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Responsive Design for Sidebar */
+@media (max-width: 768px) {
+  .mode-sidebar {
+    width: 180px;
+  }
+  
+  .main-content.with-sidebar {
+    margin-left: 180px;
+  }
+  
+  .sidebar-title {
+    font-size: 16px;
+  }
+  
+  .mode-sidebar .mode-btn {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+  
+  .drona-title {
+    font-size: 1.2rem;
+    white-space: normal;
+  }
+  
+  .input-box input {
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mode-sidebar {
+    width: 60px;
+    padding: 15px 5px;
+  }
+  
+  .main-content.with-sidebar {
+    margin-left: 60px;
+  }
+  
+  .sidebar-title {
+    font-size: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .mode-sidebar .mode-btn {
+    padding: 10px 5px;
+    font-size: 18px;
+    justify-content: center;
+  }
+  
+  .drona-title {
+    font-size: 0.9rem;
+    white-space: normal;
+    line-height: 1.3;
+  }
+  
+  .input-box input {
+    max-width: 200px;
+  }
+}
+
+/* ========== NEW UI LAYOUTS FOR MODES ========== */
+
+/* WEAPONS (ASTRAS) MODE - 3 Column Layout */
+.astra-ui {
+  min-height: 600px;
+  padding: 20px;
+}
+
+.weapons-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr 250px;
+  gap: 20px;
+  height: 600px;
+  margin-top: 20px;
+}
+
+.weapons-camera-area {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.weapons-left-panel {
+  grid-column: 1;
+  grid-row: 1;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 15px;
+  border-radius: 8px;
+  overflow-y: auto;
+  border-left: 3px solid #ffd966;
+}
+
+.weapons-right-panel {
+  grid-column: 3;
+  grid-row: 1;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 15px;
+  border-radius: 8px;
+  overflow-y: auto;
+  border-right: 3px solid #ffd966;
+}
+
+.panel-title {
+  margin-top: 0;
+  color: #ffed4e;
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.astra-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.astra-item {
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.3), rgba(200, 100, 0, 0.3));
+  border: 2px solid #ff9900;
+  color: #ffed4e;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 13px;
+}
+
+.astra-item:hover,
+.astra-item.active {
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.5), rgba(255, 200, 0, 0.5));
+  border-color: #ffd966;
+  transform: translateX(5px);
+}
+
+.knowledge-block {
+  background: rgba(255, 217, 102, 0.1);
+  border-left: 3px solid #ffed4e;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.knowledge-block.loading {
+  animation: pulse 1.5s infinite;
+}
+
+/* CAMERA DISPLAY STYLES */
+.camera-display {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 3px solid #ffd966;
+}
+
+.camera-display.large {
+  min-height: 400px;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.camera-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(50, 50, 50, 0.8), rgba(30, 30, 30, 0.8));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 2px dashed #666;
+  font-size: 14px;
+  color: #999;
+}
+
+.camera-label {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 10;
+}
+
+.posture-overlay,
+.stance-overlay,
+.target-overlay,
+.gesture-overlay,
+.fullbody-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 200, 100, 0.7);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 10;
+}
+
+/* ========== VIDYA MODE LAYOUTS ========== */
+
+.vidya-ui {
+  min-height: 700px;
+  padding: 20px;
+}
+
+.mode-title {
+  text-align: center;
+  color: #ffed4e;
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px rgba(255, 217, 102, 0.5);
+}
+
+/* DHYANA VIDYA LAYOUT */
+.dhyana-layout {
+  width: 100%;
+}
+
+.dhyana-container {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  min-height: 500px;
+}
+
+.dhyana-camera {
+  grid-column: 1;
+}
+
+.dhyana-guidance {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.guidance-block {
+  background: rgba(100, 181, 246, 0.1);
+  border: 2px solid #64b5f6;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.guidance-content {
+  font-size: 14px;
+  line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.guidance-text {
+  margin: 8px 0;
+  color: #e0e0e0;
+}
+
+.breathing-guide {
+  background: linear-gradient(135deg, rgba(100, 181, 246, 0.2), rgba(100, 200, 220, 0.2));
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  border: 2px solid #64b5f6;
+}
+
+.breath-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(100, 181, 246, 0.5), rgba(100, 181, 246, 0.1));
+  margin: 0 auto 10px;
+  animation: breathe 6s infinite;
+  border: 2px solid #64b5f6;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+/* KHADGA VIDYA LAYOUT */
+.khadga-layout {
+  width: 100%;
+}
+
+.khadga-container {
+  display: grid;
+  grid-template-columns: 180px 1fr 200px;
+  gap: 20px;
+  min-height: 500px;
+}
+
+.khadga-stances {
+  background: rgba(74, 74, 74, 0.3);
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 3px solid #999;
+}
+
+.khadga-stances h3 {
+  margin-top: 0;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+.stance-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, rgba(100, 100, 100, 0.4), rgba(80, 80, 80, 0.4));
+  border: 2px solid #777;
+  color: #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 12px;
+}
+
+.stance-btn:hover {
+  background: linear-gradient(135deg, rgba(150, 150, 150, 0.5), rgba(120, 120, 120, 0.5));
+  border-color: #aaa;
+}
+
+.khadga-camera {
+  grid-column: 2;
+}
+
+.khadga-feedback {
+  background: rgba(200, 200, 200, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  border-right: 3px solid #999;
+}
+
+.khadga-feedback h3 {
+  margin-top: 0;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+.feedback-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: rgba(100, 100, 100, 0.3);
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.metric .value {
+  color: #90ee90;
+  font-weight: bold;
+}
+
+/* DHANUR VIDYA LAYOUT */
+.dhanur-layout {
+  width: 100%;
+}
+
+.dhanur-container {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 15px;
+  min-height: 500px;
+}
+
+.dhanur-camera-main {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.virtual-target {
+  grid-column: 2;
+  grid-row: 1;
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.3), rgba(160, 82, 45, 0.3));
+  border: 2px solid #a0826d;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.target-icon {
+  font-size: 50px;
+  animation: pulse-target 1s infinite;
+}
+
+@keyframes pulse-target {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.archery-instructions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.instruction-btn {
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.4), rgba(160, 82, 45, 0.4));
+  border: 2px solid #a0826d;
+  color: #f5deb3;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 13px;
+}
+
+.instruction-btn:hover {
+  background: linear-gradient(135deg, rgba(160, 82, 45, 0.6), rgba(180, 100, 60, 0.6));
+  transform: translateY(-2px);
+}
+
+/* ASTRA VIDYA (GESTURES) LAYOUT */
+.astra-vidya-layout {
+  width: 100%;
+}
+
+.astra-gesture-container {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  grid-template-rows: auto auto;
+  gap: 15px;
+  min-height: 500px;
+}
+
+.gesture-camera {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.gesture-reference {
+  grid-column: 2;
+  grid-row: 1;
+  background: rgba(200, 50, 50, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid #ff6666;
+  text-align: center;
+}
+
+.gesture-reference h3 {
+  margin-top: 0;
+  color: #ffcccc;
+  font-size: 14px;
+}
+
+.gesture-image {
+  font-size: 60px;
+  margin: 10px 0;
+}
+
+.gesture-name {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #ddd;
+}
+
+.gesture-accuracy {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  background: rgba(100, 100, 100, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid #777;
+}
+
+.accuracy-bar {
+  width: 100%;
+  height: 20px;
+  background: rgba(50, 50, 50, 0.5);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.accuracy-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #90ee90, #00ff00);
+  transition: width 0.5s;
+}
+
+/* YOGA VIDYA LAYOUT */
+.yoga-layout {
+  width: 100%;
+}
+
+.yoga-container {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  grid-template-rows: auto auto;
+  gap: 20px;
+  min-height: 500px;
+}
+
+.yoga-camera-main {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.yoga-poses {
+  grid-column: 2;
+  grid-row: 1;
+  background: linear-gradient(135deg, rgba(232, 213, 196, 0.2), rgba(212, 191, 173, 0.2));
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid #c9b8a3;
+  overflow-y: auto;
+}
+
+.yoga-poses h3 {
+  margin-top: 0;
+  color: #f5deb3;
+  font-size: 14px;
+}
+
+.pose-item {
+  padding: 8px;
+  margin-bottom: 6px;
+  background: rgba(200, 180, 160, 0.2);
+  border-left: 3px solid #d4a574;
+  font-size: 12px;
+  color: #e8d5c4;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.pose-item:hover {
+  background: rgba(212, 191, 173, 0.4);
+  transform: translateX(5px);
+}
+
+.yoga-start {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  align-items: flex-end;
+}
+
+.start-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(232, 213, 196, 0.5), rgba(212, 191, 173, 0.5));
+  border: 2px solid #d4a574;
+  color: #2d2d2d;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.start-btn:hover {
+  background: linear-gradient(135deg, rgba(245, 222, 179, 0.7), rgba(212, 191, 173, 0.7));
+  transform: translateY(-3px);
+}
+
+/* YUDHA VIDYA LAYOUT */
+.yudha-layout {
+  width: 100%;
+}
+
+.yudha-container {
+  display: grid;
+  grid-template-columns: 1fr 150px;
+  grid-template-rows: auto auto;
+  gap: 15px;
+  min-height: 500px;
+}
+
+.yudha-camera-main {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.combat-steps {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.step-item {
+  background: linear-gradient(135deg, rgba(43, 24, 16, 0.4), rgba(61, 40, 23, 0.4));
+  border: 2px solid #8b4513;
+  color: #f5deb3;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.step-item.active {
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.6), rgba(160, 82, 45, 0.6));
+  border-color: #daa520;
+  box-shadow: 0 0 10px rgba(139, 69, 19, 0.8);
+  transform: scale(1.05);
+}
+
+.combat-feedback {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  background: rgba(139, 69, 19, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  border-right: 3px solid #8b4513;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feedback-panel {
+  text-align: center;
+}
+
+.feedback-panel p {
+  margin: 8px 0;
+  color: #f5deb3;
+  font-size: 13px;
+}
+
+/* TRADITIONAL VIDYA (Text-based) */
+.traditional-vidya-layout {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(100, 50, 20, 0.2), rgba(80, 40, 10, 0.2));
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #8b7355;
+  min-height: 500px;
+}
+
+.knowledge-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.knowledge-entry {
+  background: rgba(200, 180, 160, 0.1);
+  border-left: 3px solid #8b7355;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  line-height: 1.6;
+  font-size: 14px;
+  color: #e8d5c4;
+}
+
+.knowledge-entry.loading {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Responsive adjustments for camera displays */
+@media (max-width: 1024px) {
+  .weapons-layout,
+  .khadga-container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .weapons-left-panel,
+  .weapons-right-panel,
+  .khadga-stances,
+  .khadga-feedback {
+    grid-column: 1 !important;
+  }
+
+  .dhyana-container,
+  .yoga-container {
+    grid-template-columns: 1fr;
+  }
+
+  .dhyana-guidance,
+  .yoga-poses,
+  .combat-feedback {
+    grid-column: 1 !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ASTRAS MODE - COMPLETE REDESIGN
+   Mystical, Ancient, Divine Weapons UI
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.astras-mode-container {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1528 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Animated Particle Background */
+.astras-particle-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: radial-gradient(circle, #ffd966 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 15s infinite ease-in-out;
+}
+
+.particle:nth-child(1) {
+  left: 10%;
+  top: 20%;
+  animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+  left: 70%;
+  top: 60%;
+  animation-delay: 5s;
+}
+
+.particle:nth-child(3) {
+  left: 40%;
+  top: 80%;
+  animation-delay: 10s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); opacity: 0.1; }
+  50% { transform: translate(30px, -30px); opacity: 0.5; }
+}
+
+/* Main 3-Panel Layout */
+.astras-main-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr 320px;
+  gap: 15px;
+  padding: 20px;
+  height: calc(100% - 80px);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* LEFT PANEL - Astra List */
+.astras-left-panel {
+  background: rgba(10, 20, 40, 0.8);
+  border-left: 4px solid #ffd966;
+  border-top: 2px solid rgba(255, 217, 102, 0.5);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 20px rgba(255, 217, 102, 0.1);
+}
+
+.panel-header {
+  padding: 15px;
+  border-bottom: 2px solid rgba(255, 217, 102, 0.3);
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.1), transparent);
+}
+
+.panel-title {
+  margin: 0;
+  color: #ffd966;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 217, 102, 0.5);
+  letter-spacing: 1px;
+}
+
+/* Search Bar */
+.astra-search-box {
+  position: relative;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 217, 102, 0.2);
+}
+
+.astra-search-input {
+  width: 100%;
+  padding: 10px 30px 10px 15px;
+  background: rgba(255, 217, 102, 0.1);
+  border: 1px solid rgba(255, 217, 102, 0.3);
+  border-radius: 6px;
+  color: #e0d5b7;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.astra-search-input:focus {
+  outline: none;
+  background: rgba(255, 217, 102, 0.2);
+  border-color: #ffd966;
+  box-shadow: 0 0 10px rgba(255, 217, 102, 0.3);
+}
+
+.search-icon {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* Astra Cards Container */
+.astra-cards-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.astra-cards-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.astra-cards-container::-webkit-scrollbar-track {
+  background: rgba(255, 217, 102, 0.1);
+  border-radius: 3px;
+}
+
+.astra-cards-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 217, 102, 0.4);
+  border-radius: 3px;
+}
+
+.astra-cards-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 217, 102, 0.6);
+}
+
+/* Individual Astra Card */
+.astra-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(50, 30, 80, 0.4), rgba(30, 20, 50, 0.4));
+  border: 1px solid rgba(255, 217, 102, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.astra-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 217, 102, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.astra-card:hover::before {
+  left: 100%;
+}
+
+.astra-card:hover {
+  background: linear-gradient(135deg, rgba(100, 60, 130, 0.5), rgba(60, 40, 100, 0.5));
+  border-color: rgba(255, 217, 102, 0.5);
+  transform: translateX(5px);
+  box-shadow: 0 0 15px rgba(255, 217, 102, 0.2);
+}
+
+.astra-card.active-card {
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.3), rgba(255, 200, 0, 0.2));
+  border: 2px solid #ffd966;
+  box-shadow: 0 0 20px rgba(255, 217, 102, 0.4), inset 0 0 10px rgba(255, 217, 102, 0.1);
+}
+
+.card-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-name {
+  margin: 0;
+  color: #e0d5b7;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-element {
+  margin: 4px 0 0 0;
+  color: rgba(255, 217, 102, 0.7);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.active-indicator {
+  width: 6px;
+  height: 20px;
+  background: #ffd966;
+  border-radius: 2px;
+  box-shadow: 0 0 10px #ffd966;
+  animation: pulse 1.5s infinite;
+}
+
+/* CENTER PANEL - Astra Details */
+.astras-center-panel {
+  background: rgba(15, 25, 50, 0.8);
+  border-top: 3px solid rgba(255, 217, 102, 0.5);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.astra-details-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+}
+
+/* Title Section */
+.astra-title-section {
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(255, 217, 102, 0.3);
+  margin-bottom: 15px;
+}
+
+.astra-name-title {
+  margin: 0;
+  color: #ffd966;
+  font-size: 32px;
+  font-weight: bold;
+  text-shadow: 0 0 20px rgba(255, 217, 102, 0.6);
+  letter-spacing: 2px;
+  animation: slideIn 0.5s ease-out;
+}
+
+.astra-subtitle {
+  margin: 8px 0 0 0;
+  color: rgba(224, 213, 183, 0.8);
+  font-size: 14px;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* Description Area */
+.astra-description-area {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin-bottom: 15px;
+}
+
+.astra-description-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.astra-description-area::-webkit-scrollbar-track {
+  background: rgba(255, 217, 102, 0.1);
+  border-radius: 3px;
+}
+
+.astra-description-area::-webkit-scrollbar-thumb {
+  background: rgba(255, 217, 102, 0.3);
+  border-radius: 3px;
+}
+
+.astra-description-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 217, 102, 0.5);
+}
+
+.description-block {
+  background: rgba(255, 217, 102, 0.05);
+  border-left: 3px solid rgba(255, 217, 102, 0.4);
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  line-height: 1.6;
+  color: #e0d5b7;
+  font-size: 13px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.description-block.placeholder {
+  text-align: center;
+  color: rgba(224, 213, 183, 0.5);
+  border-color: rgba(255, 217, 102, 0.1);
+}
+
+.description-block.loading {
+  animation: pulse 1.5s infinite;
+  color: rgba(255, 217, 102, 0.8);
+}
+
+/* Audio Controls */
+.astra-audio-controls {
+  display: flex;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 217, 102, 0.2);
+}
+
+.tts-button {
+  flex: 1;
+  padding: 12px;
+  background: linear-gradient(135deg, #ffd966, #ffb84d);
+  border: none;
+  border-radius: 6px;
+  color: #0a0e27;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(255, 217, 102, 0.3);
+}
+
+.tts-button:hover {
+  background: linear-gradient(135deg, #ffed4e, #ffd966);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 217, 102, 0.5);
+}
+
+.tts-button:active {
+  transform: translateY(0);
+}
+
+.audio-icon {
+  font-size: 18px;
+}
+
+.audio-text {
+  font-size: 13px;
+}
+
+/* RIGHT PANEL - Visual Display */
+.astras-right-panel {
+  background: rgba(20, 10, 40, 0.8);
+  border-right: 4px solid rgba(255, 217, 102, 0.5);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 20px rgba(100, 50, 150, 0.2);
+}
+
+.visual-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+  gap: 15px;
+}
+
+/* Element Animation Box */
+.element-animation-box {
+  flex: 1;
+  background: radial-gradient(circle, rgba(100, 50, 150, 0.2), transparent);
+  border: 2px solid rgba(255, 217, 102, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+.astra-visual {
+  width: 150px;
+  height: 150px;
+  position: relative;
+}
+
+/* Flames Animation */
+.flames-animation .flame {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 80px;
+  background: linear-gradient(180deg, transparent, #ff6b35, #ff4500);
+  clip-path: polygon(0 100%, 25% 0, 50% 60%, 75% 0, 100% 100%);
+  animation: flameFlicker 0.6s infinite;
+  opacity: 0.8;
+}
+
+.flames-animation .flame:nth-child(1) {
+  animation-delay: 0s;
+  left: 30%;
+}
+
+.flames-animation .flame:nth-child(2) {
+  animation-delay: 0.2s;
+  left: 50%;
+  height: 100px;
+}
+
+.flames-animation .flame:nth-child(3) {
+  animation-delay: 0.4s;
+  left: 70%;
+  height: 70px;
+}
+
+@keyframes flameFlicker {
+  0%, 100% { transform: translateX(-50%) scaleY(1); opacity: 0.8; }
+  50% { transform: translateX(-50%) scaleY(1.1); opacity: 1; }
+}
+
+/* Water Animation */
+.water-animation .water-wave {
+  position: absolute;
+  width: 180px;
+  height: 90px;
+  border: 2px solid #00bfff;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  animation: waveFlow 3s linear infinite;
+}
+
+.water-animation .water-wave:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.water-animation .water-wave:nth-child(2) {
+  animation-delay: 1s;
+  opacity: 0.6;
+}
+
+@keyframes waveFlow {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* Wind Animation */
+.wind-animation .wind-ring {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border: 2px solid #87ceeb;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  animation: windRotate 2s linear infinite;
+}
+
+.wind-animation .wind-ring:nth-child(1) {
+  animation-direction: normal;
+}
+
+.wind-animation .wind-ring:nth-child(2) {
+  width: 160px;
+  height: 160px;
+  animation-direction: reverse;
+  opacity: 0.6;
+}
+
+@keyframes windRotate {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Celestial Animation */
+.celestial-animation .star-burst {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, #ffff00, rgba(255, 255, 0, 0.3));
+  border-radius: 50%;
+  animation: celestialGlow 2s ease-in-out infinite;
+  box-shadow: 0 0 30px #ffff00, 0 0 60px rgba(255, 255, 0, 0.5);
+}
+
+@keyframes celestialGlow {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.7; }
+}
+
+/* Animal Animation */
+.animal-animation .pulsing-aura {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border: 2px solid #9370db;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  animation: auraPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(147, 112, 219, 0.6);
+}
+
+@keyframes auraPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+}
+
+/* Lightning Animation */
+.lightning-animation .lightning-bolt {
+  position: absolute;
+  width: 40px;
+  height: 120px;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, #ffff00, transparent);
+  animation: lightningStrike 0.15s infinite;
+}
+
+@keyframes lightningStrike {
+  0%, 90% { opacity: 0; }
+  95% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Lunar Animation */
+.lunar-animation .moon-glow {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(200, 200, 255, 0.3));
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  animation: moonFloat 3s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(200, 200, 255, 0.5);
+}
+
+@keyframes moonFloat {
+  0%, 100% { transform: translate(-50%, -50%) translateY(-10px); }
+  50% { transform: translate(-50%, -50%) translateY(10px); }
+}
+
+/* Info Tabs */
+.astra-info-tabs {
+  background: rgba(255, 217, 102, 0.05);
+  border: 1px solid rgba(255, 217, 102, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(255, 217, 102, 0.2);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: rgba(224, 213, 183, 0.7);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+  color: #ffd966;
+  background: rgba(255, 217, 102, 0.1);
+  border-bottom-color: #ffd966;
+  font-weight: bold;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 217, 102, 0.05);
+  color: #ffed4e;
+}
+
+.tab-content {
+  padding: 10px;
+}
+
+.tab-pane {
+  color: #e0d5b7;
+  font-size: 12px;
+  line-height: 1.5;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.tab-label {
+  color: rgba(255, 217, 102, 0.7);
+  font-weight: bold;
+  margin: 0 0 8px 0;
+  font-size: 13px;
+}
+
+.tab-value {
+  color: #e0d5b7;
+  margin: 0 0 10px 0;
+  font-weight: 500;
+}
+
+.tab-description {
+  color: #d4c5a9;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.tab-list {
+  margin: 0;
+  padding: 0 0 0 20px;
+  list-style: none;
+  counter-reset: item;
+}
+
+.effect-item {
+  color: #e0d5b7;
+  margin-bottom: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  padding-left: 8px;
+  border-left: 2px solid rgba(255, 217, 102, 0.3);
+  position: relative;
+}
+
+.effect-item::before {
+  content: "⚡ ";
+  color: rgba(255, 217, 102, 0.7);
+  margin-right: 6px;
+}
+
+/* Sacred Symbol */
+.sacred-symbol {
+  text-align: center;
+  font-size: 48px;
+  animation: symbolRotate 8s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 217, 102, 0.3));
+}
+
+.symbol-text {
+  margin: 0;
+}
+
+@keyframes symbolRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* BOTTOM ACTION BAR */
+.astras-bottom-bar {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  padding: 15px 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border-top: 1px solid rgba(255, 217, 102, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.action-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.2), rgba(255, 200, 0, 0.1));
+  border: 1px solid rgba(255, 217, 102, 0.4);
+  color: #ffd966;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.action-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.4), rgba(255, 200, 0, 0.2));
+  border-color: #ffd966;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 217, 102, 0.3);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.action-btn:disabled:hover {
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.2), rgba(255, 200, 0, 0.1));
+  border-color: rgba(255, 217, 102, 0.4);
+  box-shadow: none;
+}
+
+.action-btn.bookmarked {
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.4), rgba(255, 200, 0, 0.3));
+  border-color: #ffd966;
+  color: #ffed4e;
+  box-shadow: 0 0 15px rgba(255, 217, 102, 0.3);
+}
+
+.action-btn.bookmarked:hover {
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.5), rgba(255, 200, 0, 0.4));
+  box-shadow: 0 0 20px rgba(255, 217, 102, 0.5);
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* RESPONSIVE DESIGN */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .astras-main-layout {
+    grid-template-columns: 180px 1fr 250px;
+    gap: 10px;
+    padding: 15px;
+    height: calc(100% - 70px);
+  }
+
+  .astra-name-title {
+    font-size: 24px;
+  }
+
+  .description-block {
+    font-size: 12px;
+  }
+
+  .panel-title {
+    font-size: 14px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .astras-main-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    height: auto;
+    gap: 12px;
+    padding: 10px;
+  }
+
+  .astras-left-panel {
+    max-height: 200px;
+    border-radius: 6px;
+  }
+
+  .astras-center-panel {
+    order: 2;
+    min-height: 300px;
+  }
+
+  .astras-right-panel {
+    order: 3;
+    min-height: 250px;
+    border: 1px solid rgba(255, 217, 102, 0.3);
+  }
+
+  .astra-name-title {
+    font-size: 20px;
+  }
+
+  .astra-cards-container {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .astra-card {
+    min-width: 120px;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .card-name {
+    font-size: 12px;
+  }
+
+  .element-animation-box {
+    min-height: 150px;
+  }
+
+  .astras-bottom-bar {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .action-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Very Small Devices */
+@media (max-width: 480px) {
+  .astras-bottom-bar {
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .astra-title-section {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+
+  .astra-name-title {
+    font-size: 18px;
+  }
+
+  .astra-subtitle {
+    font-size: 12px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VIDYA MODES - PROFESSIONAL GRID LAYOUT (ALL VIDYAS)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.vidya-ui {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1528 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.vidya-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  background: radial-gradient(ellipse at center, rgba(20, 15, 8, 0.95) 0%, rgba(10, 8, 5, 0.98) 100%);
+}
+
+/* Vidya Header - Top Section */
+.vidya-header {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.1), transparent);
+  border-bottom: 2px solid rgba(255, 217, 102, 0.3);
+  animation: slideDown 0.5s ease-out;
+}
+
+.mode-title {
+  color: #ffd966;
+  margin: 0;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.vidya-description {
+  color: rgba(224, 213, 183, 0.8);
+  font-size: 14px;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* Main Grid Container - 2 Column Layout */
+.vidya-grid-container {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Dhyana Specific Grid - Controls Left, Camera Right */
+.dhyana-grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Left Column: Camera Panel */
+.camera-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+}
+
+.sacred-frame {
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(255, 217, 102, 0.5);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(255, 217, 102, 0.2);
+  background: rgba(20, 15, 8, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Dhyana Camera Panel - Full height camera on right */
+.dhyana-camera-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  height: 100%;
+}
+
+.dhyana-full-camera {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  max-height: 500px;
+}
+
+.camera-display {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-display.large {
+  width: 100%;
+  height: 100%;
+}
+
+.camera-display.full {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  max-height: 500px;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.posture-overlay, .gesture-overlay {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(255, 0, 0, 0.3);
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #ffd966;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.camera-placeholder-enhanced {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(50, 50, 50, 0.8), rgba(30, 30, 30, 0.8));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 2px dashed rgba(255, 217, 102, 0.4);
+}
+
+.placeholder-content {
+  text-align: center;
+}
+
+.placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.camera-placeholder-enhanced p {
+  color: #ffd966;
+  margin: 0 0 15px 0;
+  font-size: 13px;
+}
+
+.enable-camera-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ffd966, #ffb84d);
+  border: none;
+  border-radius: 6px;
+  color: #0a0e27;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.enable-camera-btn:hover {
+  background: linear-gradient(135deg, #ffed4e, #ffd966);
+  transform: translateY(-2px);
+}
+
+/* Right Column: Control Panel */
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.control-box {
+  background: linear-gradient(135deg, rgba(58, 32, 0, 0.4), rgba(26, 15, 0, 0.3));
+  border: 1px solid #ffcc33;
+  border-radius: 10px;
+  padding: 15px;
+  will-change: auto;
+}
+
+.box-title {
+  color: #ffd966;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+/* Guidance Steps */
+.guidance-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guide-step {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #ffd966;
+  font-size: 13px;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(58, 32, 0, 0.3), rgba(26, 15, 0, 0.2));
+  border-radius: 6px;
+  border-left: 3px solid #7db3ff;
+}
+
+.step-num {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #ffd966, #ffed4e);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0a0e27;
+  font-weight: bold;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* Breathing Info */
+.breathing-info {
+  color: #64a3ff;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.breathing-info p {
+  margin: 6px 0;
+}
+
+/* Buttons */
+.vidya-btn {
+  padding: 10px;
+  border: 1px solid rgba(100, 163, 255, 0.5);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 12px;
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+}
+
+.vidya-btn.primary {
+  background: linear-gradient(135deg, rgba(100, 163, 255, 0.3), rgba(74, 127, 191, 0.2));
+  color: #64a3ff;
+  border-color: #64a3ff;
+}
+
+.vidya-btn.primary:hover {
+  background: linear-gradient(135deg, rgba(100, 163, 255, 0.5), rgba(74, 127, 191, 0.3));
+  color: #7db3ff;
+  transform: translateY(-1px);
+}
+
+.vidya-btn.secondary {
+  background: rgba(74, 127, 191, 0.2);
+  color: #7db3ff;
+  border-color: rgba(100, 163, 255, 0.3);
+}
+
+.vidya-btn.secondary:hover {
+  background: rgba(100, 163, 255, 0.3);
+  color: #64a3ff;
+  border-color: #64a3ff;
+}
+
+/* Metrics Compact */
+.metric-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  color: #64a3ff;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(100, 163, 255, 0.2);
+}
+
+.metric-compact strong {
+  color: #ffd966;
+  font-weight: bold;
+}
+
+/* Target Info */
+.target-info {
+  background: rgba(50, 50, 80, 0.3);
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  color: #ffd966;
+  font-size: 12px;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+/* Mudra Small */
+.mudra-visual-small {
+  font-size: 40px;
+  text-align: center;
+  margin: 10px 0;
+  animation: mudraFloat 2s ease-in-out infinite;
+}
+
+.mudra-name-small {
+  color: #ffd966;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  margin: 0 0 4px 0;
+}
+
+.mudra-desc-small {
+  color: #d4c5a9;
+  text-align: center;
+  font-size: 11px;
+  margin: 0;
+}
+
+.accuracy-simple {
+  font-size: 32px;
+  font-weight: bold;
+  color: #ffd966;
+  text-align: center;
+  padding: 15px 0;
+  background: rgba(100, 60, 150, 0.2);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+/* Combat Step Compact */
+.combat-step-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(147, 112, 219, 0.1);
+  border-left: 3px solid #ffd966;
+  border-radius: 6px;
+  color: #d4c5a9;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.step-icon {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 217, 102, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd966;
+  font-weight: bold;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* Guru Message Box */
+.guru-message-box {
+  background: linear-gradient(135deg, rgba(58, 32, 0, 0.4), rgba(26, 15, 0, 0.3));
+  border: 1px solid #ffcc33;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: auto;
+}
+
+.guru-message-box h4 {
+  color: #ffcc33;
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.guru-message-box p {
+  color: #ffd966;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Dhyana Specific Features */
+.breath-display {
+  padding: 10px 0;
+}
+
+.breath-count {
+  font-size: 16px;
+  color: #ffd966;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.breath-number {
+  color: #ffcc33;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.breath-guidance {
+  font-size: 12px;
+  color: #ffd966;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.timer-display {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.timer-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #ffd966;
+  margin-bottom: 12px;
+  font-family: 'Courier New', monospace;
+}
+
+.timer-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.timer-actions .vidya-btn {
+  flex: 1;
+  max-width: 120px;
+  padding: 8px;
+  font-size: 11px;
+}
+
+.focus-indicator {
+  padding: 10px 0;
+}
+
+.focus-level {
+  background: rgba(255, 217, 102, 0.1);
+  border-radius: 10px;
+  height: 12px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 217, 102, 0.3);
+}
+
+.focus-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd966, #ffcc33);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.focus-text {
+  font-size: 12px;
+  color: #ffd966;
+  text-align: center;
+  margin: 0;
+}
+
+/* Text-Based Vidyas (Ayurveda, Jyotish, Tantra, Dharma) */
+.text-vidya-container {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.text-content-area {
+  background: linear-gradient(135deg, rgba(58, 32, 0, 0.3), rgba(26, 15, 0, 0.2));
+  border: 1px solid #ffd966;
+  border-radius: 10px;
+  padding: 20px;
+  overflow-y: auto;
+  color: #ffd966;
+}
+
+.text-entry {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, rgba(58, 32, 0, 0.4), rgba(26, 15, 0, 0.3));
+  border-left: 3px solid #ffcc33;
+  padding-left: 15px;
+  border-radius: 4px;
+}
+
+.text-entry p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #ffd966;
+}
+
+.text-entry.loading {
+  text-align: center;
+  color: rgba(255, 217, 102, 0.7);
+  animation: pulse 1.5s infinite;
+}
+
+.text-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.text-section {
+  background: linear-gradient(135deg, rgba(58, 32, 0, 0.4), rgba(26, 15, 0, 0.3));
+  border: 2px solid #ffcc33;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.text-section h4 {
+  color: #ffd966;
+  font-size: 12px;
+  margin: 0 0 10px 0;
+  font-weight: bold;
+  text-align: center;
+}
+
+.text-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.text-item {
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.2), rgba(255, 200, 0, 0.1));
+  border: 1px solid #ffd966;
+  color: #ffd966;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.text-item:hover {
+  background: rgba(255, 217, 102, 0.2);
+  border-color: rgba(255, 217, 102, 0.5);
+  color: #ffd966;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .vidya-grid-container,
+  .text-vidya-container {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .vidya-header {
+    padding: 15px;
+  }
+
+  .mode-title {
+    font-size: 18px;
+  }
+
+  .vidya-grid-container,
+  .text-vidya-container {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .camera-panel {
+    min-height: 300px;
+  }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Additional Vidya Animations */
+@keyframes mudraFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.section-title {
+  color: #ffd966;
+  font-size: 14px;
+  margin: 0 0 10px 0;
+  font-weight: bold;
+}
+
+.stance-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stance-btn-large {
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(100, 60, 150, 0.4), rgba(60, 40, 100, 0.4));
+  border: 1px solid rgba(255, 217, 102, 0.4);
+  color: #e0d5b7;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.stance-btn-large:hover {
+  background: linear-gradient(135deg, rgba(150, 100, 200, 0.5), rgba(100, 60, 150, 0.5));
+  border-color: #ffd966;
+  color: #ffed4e;
+  transform: translateX(5px);
+}
+
+.khadga-camera-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sacred-frame {
+  width: 100%;
+  height: 100%;
+  border: 3px solid #ffd966;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(255, 217, 102, 0.3);
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.khadga-metrics-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.metric-card {
+  background: rgba(50, 30, 80, 0.4);
+  border: 1px solid rgba(255, 217, 102, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.metric-label {
+  color: rgba(255, 217, 102, 0.8);
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.metric-value {
+  color: #ffd966;
+  font-size: 16px;
+  font-weight: bold;
+  margin: 4px 0;
+}
+
+.metric-bar {
+  height: 6px;
+  background: rgba(255, 217, 102, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.metric-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd966, #ffed4e);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.guru-feedback-box {
+  background: rgba(100, 60, 150, 0.2);
+  border: 1px solid rgba(255, 217, 102, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.guru-feedback-box h4 {
+  color: #ffd966;
+  margin: 0 0 8px 0;
+  font-size: 12px;
+}
+
+.feedback-text {
+  color: #d4c5a9;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.feedback-text p {
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DHANUR VIDYA - ARCHERY
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.dhanur-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+}
+
+.dhanur-master-container {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.dhanur-camera-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.archery-frame {
+  position: relative;
+}
+
+.target-reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  animation: rotateTarget 3s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateTarget {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.bow-guide {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 217, 102, 0.5), transparent);
+  pointer-events: none;
+}
+
+.dhanur-stats-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.virtual-target-box {
+  background: rgba(50, 30, 80, 0.3);
+  border: 2px solid rgba(255, 217, 102, 0.4);
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+}
+
+.target-display {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 10px;
+  position: relative;
+}
+
+.target-outer, .target-middle, .target-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255, 217, 102, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.target-outer { width: 120px; height: 120px; }
+.target-middle { width: 80px; height: 80px; }
+.target-inner { width: 40px; height: 40px; color: #ffd966; font-size: 20px; }
+
+.target-status {
+  color: #ffd966;
+  font-size: 12px;
+  margin: 0;
+}
+
+.archery-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.stat-label {
+  color: rgba(255, 217, 102, 0.8);
+  min-width: 60px;
+}
+
+.stat-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 217, 102, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd966, #ffed4e);
+}
+
+.stat-value {
+  color: #ffd966;
+  font-weight: bold;
+  min-width: 35px;
+  text-align: right;
+}
+
+.stat-counter {
+  color: #ffd966;
+  font-weight: bold;
+  margin-left: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ASTRA VIDYA - DIVINE GESTURES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.astra-vidya-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+}
+
+.astra-master-container {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.astra-camera-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gesture-guides {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.astra-reference-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.mudra-display {
+  background: rgba(100, 60, 150, 0.2);
+  border: 2px solid rgba(255, 217, 102, 0.4);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+
+.mudra-visual {
+  font-size: 64px;
+  margin-bottom: 10px;
+  animation: mudraFloat 2s ease-in-out infinite;
+}
+
+@keyframes mudraFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.mudra-name {
+  color: #ffd966;
+  font-size: 13px;
+  font-weight: bold;
+  margin: 0 0 4px 0;
+}
+
+.mudra-desc {
+  color: #d4c5a9;
+  font-size: 11px;
+  margin: 0;
+}
+
+.mudra-accuracy {
+  background: rgba(50, 30, 80, 0.3);
+  border: 1px solid rgba(255, 217, 102, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.accuracy-title {
+  color: rgba(255, 217, 102, 0.8);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.accuracy-ring {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  border: 3px solid rgba(255, 217, 102, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: conic-gradient(#ffd966 0% 78%, rgba(255, 217, 102, 0.2) 78%);
+}
+
+.accuracy-value {
+  color: #ffd966;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   YOGA VIDYA - SACRED POSES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.yoga-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+}
+
+.yoga-master-container {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.yoga-camera-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skeleton-guide {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.yoga-poses-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.asana-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.asana-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(50, 30, 80, 0.3);
+  border: 1px solid rgba(255, 217, 102, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.asana-item:hover {
+  background: rgba(100, 60, 150, 0.4);
+  border-color: #ffd966;
+}
+
+.asana-emoji {
+  font-size: 20px;
+}
+
+.asana-name {
+  color: #e0d5b7;
+  font-size: 12px;
+}
+
+.session-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.session-btn {
+  flex: 1;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.2), rgba(255, 200, 0, 0.1));
+  border: 1px solid rgba(255, 217, 102, 0.4);
+  color: #ffd966;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.session-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.3), rgba(255, 200, 0, 0.2));
+  border-color: #ffd966;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   YUDHA VIDYA - COMBAT TRAINING
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.yudha-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+}
+
+.yudha-master-container {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.yudha-camera-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.combat-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 0, 0, 0.3);
+  padding: 8px 12px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.combat-grid {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-image: 
+    linear-gradient(rgba(255, 217, 102, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 217, 102, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.yudha-sequence-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.combat-steps-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(50, 30, 80, 0.3);
+  border: 1px solid rgba(255, 217, 102, 0.2);
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.step-item.active {
+  background: rgba(255, 217, 102, 0.2);
+  border-color: #ffd966;
+}
+
+.step-icon {
+  font-size: 24px;
+}
+
+.step-info {
+  flex: 1;
+}
+
+.step-name {
+  color: #e0d5b7;
+  font-size: 12px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.step-desc {
+  color: rgba(255, 217, 102, 0.7);
+  font-size: 11px;
+  margin: 2px 0 0 0;
+}
+
+.step-connector {
+  height: 20px;
+  border-left: 2px solid rgba(255, 217, 102, 0.3);
+  margin-left: 30px;
+}
+
+.combat-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.combat-stat {
+  background: rgba(100, 60, 150, 0.2);
+  border: 1px solid rgba(255, 217, 102, 0.3);
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+}
+
+.combat-stat .stat-label {
+  color: rgba(255, 217, 102, 0.8);
+  font-size: 10px;
+  display: block;
+}
+
+.combat-stat .stat-value {
+  color: #ffd966;
+  font-size: 16px;
+  font-weight: bold;
+  display: block;
+  margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TRADITIONAL VIDYA - PARCHMENT STYLE (TEXT-BASED)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.traditional-vidya-layout {
+  display: flex;
+  height: 100%;
+  padding: 0;
+  flex-direction: column;
+}
+
+.parchment-header {
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(200, 140, 60, 0.2), rgba(150, 100, 40, 0.15));
+  border-bottom: 2px solid rgba(200, 140, 60, 0.4);
+  text-align: center;
+}
+
+.parchment-subtitle {
+  color: rgba(224, 213, 183, 0.7);
+  font-size: 13px;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.parchment-container {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.knowledge-parchment {
+  background: linear-gradient(135deg, rgba(200, 140, 60, 0.15), rgba(150, 100, 40, 0.1));
+  border: 2px solid rgba(200, 140, 60, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  overflow-y: auto;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.parchment-content {
+  color: #d4c5a9;
+  line-height: 1.8;
+}
+
+.parchment-entry {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-left: 3px solid rgba(200, 140, 60, 0.4);
+  padding-left: 15px;
+}
+
+.entry-text {
+  color: #e0d5b7;
+  font-size: 13px;
+  margin: 0 0 4px 0;
+  line-height: 1.6;
+}
+
+.entry-timestamp {
+  color: rgba(200, 140, 60, 0.6);
+  font-size: 10px;
+  margin: 0;
+}
+
+.parchment-entry.loading-entry {
+  text-align: center;
+  color: rgba(255, 217, 102, 0.7);
+  animation: pulse 1.5s infinite;
+}
+
+.ancient-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sidebar-section {
+  background: linear-gradient(135deg, rgba(100, 60, 150, 0.2), rgba(50, 30, 80, 0.2));
+  border: 1px solid rgba(200, 140, 60, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.sidebar-title {
+  color: #ffd966;
+  font-size: 12px;
+  margin: 0 0 10px 0;
+  font-weight: bold;
+  text-align: center;
+}
+
+.sidebar-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-item {
+  background: rgba(255, 217, 102, 0.1);
+  border: 1px solid rgba(255, 217, 102, 0.2);
+  color: #e0d5b7;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 217, 102, 0.2);
+  border-color: rgba(255, 217, 102, 0.5);
+  color: #ffd966;
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 1024px) {
+  .dhyana-master-container,
+  .khadga-master-container,
+  .dhanur-master-container,
+  .astra-master-container,
+  .yoga-master-container,
+  .yudha-master-container {
+    grid-template-columns: 1fr !important;
+  }
+
+  .parchment-container {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .vidya-header {
+    padding: 15px;
+  }
+
+  .vidya-description {
+    font-size: 12px;
+  }
+
+  .sacred-frame {
+    min-height: 300px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DHYANA VIDYA - CALM & MINIMAL DESIGN (NEW)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.dhyana-calm-layout {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f5f3f9 0%, #e8e5f0 50%, #f0ebf5 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Drifting Particles */
+.dhyana-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(147, 112, 219, 0.3), transparent);
+  border-radius: 50%;
+  animation: driftParticle 20s infinite linear;
+  opacity: 0.3;
+}
+
+@keyframes driftParticle {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(50px);
+    opacity: 0.1;
+  }
+}
+
+/* Camera Background */
+.dhyana-camera-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.dhyana-background-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(15px) brightness(0.7);
+  transform: scaleX(-1);
+}
+
+.dhyana-background-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #d8bfd8 0%, #e6d7e6 50%, #dda0dd 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: blur(8px);
+}
+
+.placeholder-text {
+  font-size: 24px;
+  color: rgba(147, 112, 219, 0.3);
+}
+
+/* Gentle Edge Blur */
+.dhyana-edge-blur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  box-shadow: inset 0 0 80px rgba(147, 112, 219, 0.2);
+}
+
+/* Dynamic Edge Glow based on Focus Depth */
+.dhyana-edge-blur.depth-1 {
+  box-shadow: inset 0 0 40px rgba(147, 112, 219, 0.15);
+}
+
+.dhyana-edge-blur.depth-2 {
+  box-shadow: inset 0 0 60px rgba(147, 112, 219, 0.25);
+}
+
+.dhyana-edge-blur.depth-3 {
+  box-shadow: inset 0 0 100px rgba(147, 112, 219, 0.35);
+}
+
+/* Top Center Label */
+.dhyana-mode-label {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 12px 24px;
+  border-radius: 24px;
+  color: #6b5b95;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  z-index: 20;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 30px rgba(147, 112, 219, 0.15);
+  animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Center Focus Reticle */
+.dhyana-reticle-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  width: 300px;
+  height: 300px;
+}
+
+.focus-reticle {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 3px solid rgba(147, 112, 219, 0.5);
+  border-radius: 50%;
+  animation: pulseReticle 3s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(147, 112, 219, 0.2);
+}
+
+@keyframes pulseReticle {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 0.8;
+  }
+}
+
+/* Center cross-hair */
+.focus-reticle::before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 30px;
+  background: rgba(147, 112, 219, 0.4);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.focus-reticle::after {
+  content: '';
+  position: absolute;
+  width: 30px;
+  height: 2px;
+  background: rgba(147, 112, 219, 0.4);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Aura Silhouette Detected */
+.aura-silhouette {
+  position: absolute;
+  width: 150px;
+  height: 180px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(200, 140, 255, 0.4);
+  border-radius: 50% 50% 45% 45%;
+  box-shadow: 0 0 40px rgba(200, 140, 255, 0.3), inset 0 0 40px rgba(200, 140, 255, 0.1);
+  animation: auraGlow 4s ease-in-out infinite;
+}
+
+@keyframes auraGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(200, 140, 255, 0.2), inset 0 0 20px rgba(200, 140, 255, 0.05);
+    opacity: 0.3;
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(200, 140, 255, 0.5), inset 0 0 40px rgba(200, 140, 255, 0.2);
+    opacity: 0.6;
+  }
+}
+
+/* Left Side: Aura Panel */
+.dhyana-aura-panel {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+}
+
+.aura-card {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 140px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(147, 112, 219, 0.15);
+  animation: slideInLeft 0.6s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.aura-label {
+  color: #6b5b95;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.slider {
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  background: rgba(147, 112, 219, 0.2);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(147, 112, 219, 0.3);
+}
+
+.slider::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .slider {
+  background: linear-gradient(135deg, #b19cd9, #9370db);
+  border-color: #9370db;
+}
+
+.toggle-switch input:checked + .slider::after {
+  left: 28px;
+}
+
+/* Right Side: Control Panel */
+.dhyana-control-panel {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  align-items: center;
+}
+
+.lotus-icon {
+  font-size: 36px;
+  animation: floatLotus 4s ease-in-out infinite;
+}
+
+@keyframes floatLotus {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+/* Focus Depth Slider Section */
+.focus-depth-section {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 140px;
+  box-shadow: 0 8px 32px rgba(147, 112, 219, 0.15);
+  animation: slideInRight 0.6s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.depth-label {
+  color: #6b5b95;
+  font-size: 13px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.depth-slider-container {
+  margin-bottom: 12px;
+}
+
+.depth-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(147, 112, 219, 0.2), rgba(200, 140, 255, 0.3));
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.depth-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9370db, #b19cd9);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(147, 112, 219, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+.depth-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9370db, #b19cd9);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(147, 112, 219, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+.depth-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(147, 112, 219, 0.6);
+  text-align: center;
+}
+
+.depth-labels span {
+  flex: 1;
+}
+
+/* Stability Meter Section */
+.stability-meter-section {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 15px;
+  min-width: 140px;
+  box-shadow: 0 8px 32px rgba(147, 112, 219, 0.15);
+}
+
+.stability-label {
+  color: #6b5b95;
+  font-size: 13px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.stability-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.stability-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(147, 112, 219, 0.15);
+  border: 1px solid rgba(147, 112, 219, 0.3);
+  transition: all 0.3s ease;
+}
+
+.stability-dot.active {
+  background: linear-gradient(135deg, #9370db, #b19cd9);
+  border-color: #9370db;
+  box-shadow: 0 0 10px rgba(147, 112, 219, 0.4);
+}
+
+/* Bottom Center: Action Buttons */
+.dhyana-bottom-buttons {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  z-index: 25;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.dhyana-action-btn {
+  padding: 12px 28px;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(147, 112, 219, 0.2);
+}
+
+.center-btn {
+  background: rgba(147, 112, 219, 0.3);
+  color: #6b5b95;
+}
+
+.center-btn:hover {
+  background: rgba(147, 112, 219, 0.5);
+  color: #5a4a7d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(147, 112, 219, 0.3);
+}
+
+.balance-btn {
+  background: rgba(200, 140, 255, 0.3);
+  color: #6b5b95;
+}
+
+.balance-btn:hover {
+  background: rgba(200, 140, 255, 0.5);
+  color: #5a4a7d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(200, 140, 255, 0.3);
+}
+
+.exit-btn {
+  background: rgba(230, 180, 200, 0.3);
+  color: #6b5b95;
+}
+
+.exit-btn:hover {
+  background: rgba(230, 150, 180, 0.5);
+  color: #5a4a7d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(230, 150, 180, 0.3);
+}
+
+/* Vignette Effect */
+.dhyana-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, rgba(147, 112, 219, 0), rgba(147, 112, 219, 0.4));
+  z-index: 20;
+  pointer-events: none;
+  animation: vignetteAppear 0.5s ease-in-out;
+}
+
+@keyframes vignetteAppear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

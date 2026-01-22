@@ -1,0 +1,576 @@
+/* ========================================
+   KHADGA MODE - SWORD TRAINING UI
+   Warrior Red & Gold Theme
+   ======================================== */
+
+.khadga-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #2d1810 0%, #4a2820 50%, #2d1810 100%);
+  background-attachment: fixed;
+  overflow: hidden;
+  font-family: 'Georgia', 'Garamond', serif;
+  color: #e8d7c3;
+  position: relative;
+}
+
+/* Combat energy background */
+.khadga-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(255, 140, 0, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 50%);
+  animation: combatPulse 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes combatPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+
+.khadga-header {
+  background: linear-gradient(180deg, rgba(74, 40, 32, 0.95) 0%, rgba(50, 25, 15, 0.9) 100%);
+  padding: 20px 30px;
+  border-bottom: 3px solid #ff8c00;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.khadga-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ff8c00;
+  margin: 0;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.khadga-subtitle {
+  font-size: 14px;
+  color: #daa520;
+  margin: 8px 0 0 0;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* ========================================
+   MAIN CONTENT
+   ======================================== */
+
+.khadga-content {
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  padding: 20px;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* ========================================
+   STANCE PANEL (LEFT)
+   ======================================== */
+
+.stance-panel {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+}
+
+.panel-title {
+  margin: 0;
+  color: #ff8c00;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.stance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stance-card {
+  background: linear-gradient(135deg, rgba(74, 40, 32, 0.5), rgba(50, 25, 15, 0.4));
+  border: 2px solid #daa520;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #e8d7c3;
+}
+
+.stance-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+}
+
+.stance-card.active {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.3), rgba(255, 100, 0, 0.2));
+  border-color: #ff8c00;
+  box-shadow: 0 0 15px rgba(255, 140, 0, 0.5);
+}
+
+.stance-emoji {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.stance-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #ff8c00;
+  margin-bottom: 4px;
+}
+
+.stance-desc {
+  font-size: 10px;
+  color: #daa520;
+  opacity: 0.8;
+}
+
+/* Stats Section */
+.stats-section {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, rgba(74, 40, 32, 0.5), rgba(50, 25, 15, 0.4));
+  border: 1px solid #daa520;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #daa520;
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 18px;
+  color: #ff8c00;
+  font-weight: bold;
+}
+
+/* Scrollbar */
+.stance-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stance-panel::-webkit-scrollbar-track {
+  background: rgba(255, 140, 0, 0.1);
+}
+
+.stance-panel::-webkit-scrollbar-thumb {
+  background: #ff8c00;
+  border-radius: 3px;
+}
+
+/* ========================================
+   TRAINING CENTER (MIDDLE)
+   ======================================== */
+
+.training-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+}
+
+.sword-avatar {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a2820 0%, #2d1810 100%);
+  border: 3px solid #ff8c00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 140, 0, 0.3);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.sword-avatar.teaching {
+  animation: swordGlow 0.6s ease-in-out infinite;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.6);
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatar-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.training-aura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 140, 0, 0.4) 0%, transparent 70%);
+  animation: combatAura 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes swordGlow {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes combatAura {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+.trainer-name {
+  font-size: 14px;
+  color: #ff8c00;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin: 0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Sword Visualization */
+.sword-visualization {
+  width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(50, 25, 15, 0.6), rgba(74, 40, 32, 0.5));
+  border: 2px solid #ff8c00;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sword-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: swordFlow 0.6s ease-in-out;
+}
+
+.sword-display.attack {
+  transform: rotate(-15deg);
+}
+
+.sword-display.defense {
+  transform: rotate(45deg);
+}
+
+.sword-display.parry {
+  transform: rotate(90deg);
+}
+
+@keyframes swordFlow {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sword-icon {
+  font-size: 60px;
+  animation: swordBounce 0.8s ease-in-out infinite;
+}
+
+@keyframes swordBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.stance-label {
+  font-size: 14px;
+  color: #ff8c00;
+  font-weight: bold;
+}
+
+/* Feedback Scroll */
+.feedback-scroll {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(50, 25, 15, 0.6), rgba(74, 40, 32, 0.5));
+  border: 2px solid #ff8c00;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+}
+
+.feedback-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.feedback-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 140, 0, 0.1);
+}
+
+.feedback-scroll::-webkit-scrollbar-thumb {
+  background: #ff8c00;
+  border-radius: 3px;
+}
+
+.feedback-bubble {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  animation: slideIn 0.4s ease;
+}
+
+.feedback-bubble.guru {
+  background: rgba(255, 140, 0, 0.15);
+  border-left: 3px solid #ff8c00;
+  color: #e8d7c3;
+}
+
+.feedback-bubble.user {
+  background: rgba(212, 175, 55, 0.15);
+  border-left: 3px solid #daa520;
+  color: #daa520;
+  margin-left: 20px;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading-training {
+  text-align: center;
+  padding: 20px;
+  color: #ff8c00;
+}
+
+.sword-spin {
+  font-size: 32px;
+  animation: swordSpin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes swordSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   TRAINING CONTROLS (RIGHT)
+   ======================================== */
+
+.training-controls {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+}
+
+.current-stance-box,
+.practice-box,
+.techniques-box,
+.progress-box {
+  background: linear-gradient(135deg, rgba(74, 40, 32, 0.4), rgba(50, 25, 15, 0.3));
+  border: 2px solid #ff8c00;
+  border-radius: 10px;
+  padding: 15px;
+  color: #e8d7c3;
+}
+
+.current-stance-box h3,
+.practice-box h3,
+.techniques-box h3,
+.progress-box h3 {
+  margin: 0 0 12px 0;
+  color: #ff8c00;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.current-stance-display {
+  font-size: 48px;
+  text-align: center;
+  margin: 15px 0;
+  animation: stancePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes stancePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.current-stance-name {
+  text-align: center;
+  color: #daa520;
+  font-size: 12px;
+  margin: 0;
+  font-weight: bold;
+}
+
+.strike-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #ff8c00, #ff6347);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.strike-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.5);
+  background: linear-gradient(135deg, #ff6347, #ff4500);
+}
+
+.strike-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.practice-hint {
+  font-size: 11px;
+  color: #daa520;
+  margin: 8px 0 0 0;
+  text-align: center;
+}
+
+.techniques-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.technique-item {
+  background: rgba(255, 140, 0, 0.2);
+  border: 1px solid #ff8c00;
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: #ff8c00;
+  font-weight: bold;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 140, 0, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff8c00, #ff6347);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 12px;
+  color: #ff8c00;
+  margin: 0;
+  font-weight: bold;
+}
+
+/* Scrollbar */
+.training-controls::-webkit-scrollbar {
+  width: 6px;
+}
+
+.training-controls::-webkit-scrollbar-track {
+  background: rgba(255, 140, 0, 0.1);
+}
+
+.training-controls::-webkit-scrollbar-thumb {
+  background: #ff8c00;
+  border-radius: 3px;
+}
