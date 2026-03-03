@@ -4,7 +4,6 @@ import dronacharya from '../assets/dronacharya.jpg';
 
 const DhyanaMode = ({ studentName, studentLevel, respectMeter, askDrona, chatHistory = [], isLoading = false, cameraActive = false, videoRef = null }) => {
   const scrollContainerRef = useRef(null);
-  const localVideoRef = useRef(null);
   const [breathCount, setBreathCount] = useState(0);
   const [sessionTime, setSessionTime] = useState(0);
   const [sessionActive, setSessionActive] = useState(false);

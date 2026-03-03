@@ -5,7 +5,6 @@ import dronacharya from '../assets/dronacharya.jpg';
 const DhanurMode = ({ studentName, studentLevel, respectMeter, askDrona, chatHistory = [], isLoading = false }) => {
   const scrollContainerRef = useRef(null);
   const [selectedTechnique, setSelectedTechnique] = useState('aimed');
-  const [arrowsShot, setArrowsShot] = useState(0);
   const [accuracy, setAccuracy] = useState(0);
   const [techniques] = useState([
     { id: 'aimed', name: 'Aimed Shot', emoji: '🎯', desc: 'Precision targeting' },
@@ -24,7 +23,6 @@ const DhanurMode = ({ studentName, studentLevel, respectMeter, askDrona, chatHis
 
   const handleShootArrow = () => {
     const newAccuracy = Math.min(100, accuracy + Math.random() * 20);
-    setArrowsShot(a => a + 1);
     setAccuracy(newAccuracy);
     askDrona(`I fired a ${selectedTechnique} shot. Accuracy: ${newAccuracy.toFixed(0)}%. Provide feedback.`);
   };

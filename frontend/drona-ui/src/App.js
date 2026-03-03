@@ -4,6 +4,7 @@ import Lottie from "lottie-react";
 import "./App.css";
 import guruAnimation from "./assets/guru.json";
 import bgMusic from "./assets/meditation_music.mp3";
+import studentMemory from "./studentMemory";
 import IthihasaMode from "./components/IthihasaMode";
 import DhyanaMode from "./components/DhyanaMode";
 import KhadgaMode from "./components/KhadgaMode";
@@ -11,6 +12,7 @@ import DhanurMode from "./components/DhanurMode";
 import DharmaMode from "./components/DharmaMode";
 import YudhaMode from "./components/YudhaMode";
 import ShastraMode from "./components/ShastraMode";
+import GadaMode from "./components/GadaMode";
 
 const API_URL = "http://127.0.0.1:8000/ask";
 
@@ -20,39 +22,57 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [cameraError, setCameraError] = useState("");
   
-  // Student Profile System
-  const [studentName, setStudentName] = useState(localStorage.getItem('dronaStudentName') || '');
-  const [isInitiated, setIsInitiated] = useState(localStorage.getItem('dronaInitiated') === 'true');
-  const [studentLevel, setStudentLevel] = useState(localStorage.getItem('dronaLevel') || 'Novice');
-  const [respectMeter, setRespectMeter] = useState(parseInt(localStorage.getItem('dronaRespect') || '50'));
-  const [questionsAsked, setQuestionsAsked] = useState(parseInt(localStorage.getItem('dronaQuestionsAsked') || '0'));
-  const [showInitiation, setShowInitiation] = useState(!isInitiated);
+  // Multi-Student System
+  const [showStudentSelector, setShowStudentSelector] = useState(false);
+  const [allStudents, setAllStudents] = useState(studentMemory.getAllStudents());
+  const [studentName, setStudentName] = useState(studentMemory.getCurrentStudent() || '');
+  const [isInitiated, setIsInitiated] = useState(false);
+  const [showInitiation, setShowInitiation] = useState(!studentName);
   
   // Dhyana Vidya - New Calm Design
+  // eslint-disable-next-line no-unused-vars
   const [showAura, setShowAura] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [focusDepth, setFocusDepth] = useState(1);
+  // eslint-disable-next-line no-unused-vars
   const [motionStability, setMotionStability] = useState(3);
+  // eslint-disable-next-line no-unused-vars
   const [showVignette, setShowVignette] = useState(false);
   
   // Proactive Guru System
   const [currentMode, setCurrentMode] = useState('chat'); // chat, archery, war, meditation, story, weapons, vidya
   const [currentVidya, setCurrentVidya] = useState(''); // dhyana, khadga, dhanur, gada, astra, etc.
   const [showVidyaSelector, setShowVidyaSelector] = useState(false); // Toggle vidya submodes visibility
+  // eslint-disable-next-line no-unused-vars
   const [greetingShown, setGreetingShown] = useState(false); // Track if greeting has been shown once
+  
+  // Vidya Learning/Testing System
+  const [vidyaMode, setVidyaMode] = useState(null); // 'learn' or 'test'
+  const [showVidyaSelection, setShowVidyaSelection] = useState(false); // Show learn/test selection modal
+  const [vidyaTestScore, setVidyaTestScore] = useState(0); // Track test score
+  const [vidyaTestAnswers, setVidyaTestAnswers] = useState([]); // Store test answers
+  // eslint-disable-next-line no-unused-vars
+  const [vidyaTestActive, setVidyaTestActive] = useState(false); // Is test in progress
+  // eslint-disable-next-line no-unused-vars
+  const [lessonContent, setLessonContent] = useState(''); // Current lesson content
   
   const recognitionRef = useRef(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const chatEndRef = useRef(null);
   const vidyaBtnRef = useRef(null);
+  // eslint-disable-next-line no-unused-vars
   const [vidyaFlyoutTop, setVidyaFlyoutTop] = useState(0);
   const [currentAstra, setCurrentAstra] = useState('Brahmastra');
   const [astraSegments, setAstraSegments] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [showAstraLock, setShowAstraLock] = useState(false);
   const [bookmarkedAstras, setBookmarkedAstras] = useState([]);
   const [activeAstraTab, setActiveAstraTab] = useState('element');
+  const [astraSearchQuery, setAstraSearchQuery] = useState(''); // Search query for astras
   const [astraList] = useState([
     { name: 'Brahmastra', element: 'Universal', icon: '🌟', color: 'gold' },
     { name: 'Agneyastra', element: 'Fire', icon: '🔥', color: 'orange' },
@@ -69,6 +89,16 @@ function App() {
       text: "Shishya, sit close. Today I shall unfold the tales of old—the stories that shaped warriors and kings. Which tale calls to you? A warrior's journey? A battle? A hidden lesson?",
     },
   ]);
+
+  // ✨ ITHIHAASA STORY CHAPTER TRACKING
+  // eslint-disable-next-line no-unused-vars
+  const [currentStoryId, setCurrentStoryId] = useState(''); // e.g., "mahabharata", "ramayana"
+  // eslint-disable-next-line no-unused-vars
+  const [currentChapter, setCurrentChapter] = useState(0); // Current chapter number (0-based)
+  // eslint-disable-next-line no-unused-vars
+  const [totalChapters, setTotalChapters] = useState(0); // Total chapters in story
+  // eslint-disable-next-line no-unused-vars
+  const [storyState, setStoryState] = useState({}); // Additional story metadata
 
   const langMap = {
     eng: "en",
@@ -90,20 +120,7 @@ function App() {
     camera_disabled: ['astras', 'vidya', 'chat', 'story', 'archery', 'war', 'meditation', 'ayurveda', 'jyotish', 'tantra', 'dharma']
   };
 
-  // Determine if camera should be active based on current mode/vidya
-  const shouldCameraBeActive = () => {
-    if (currentMode === 'vidya' && currentVidya) {
-      return CAMERA_CONFIG.camera_enabled.includes(currentVidya);
-    }
-    return CAMERA_CONFIG.camera_enabled.includes(currentMode);
-  };
-
-  const shouldCameraBeOptional = () => {
-    if (currentMode === 'vidya' && currentVidya) {
-      return CAMERA_CONFIG.camera_optional.includes(currentVidya);
-    }
-    return CAMERA_CONFIG.camera_optional.includes(currentMode);
-  };
+  // Camera configuration defined above - helper functions reserved for future use
 
   // Detect Indian language
   const detectLanguage = (text) => {
@@ -120,25 +137,141 @@ function App() {
   };
 
   // Student Initiation Handler
+  // Handle selecting an existing student
+  const handleSelectStudent = (name) => {
+    const studentData = studentMemory.getStudentData(name);
+    if (!studentData) return;
+
+    // Set student data
+    setStudentName(name);
+    setIsInitiated(studentData.initiated || false);
+    setChatHistory(studentData.chatHistory || []);
+    
+    // Update current student
+    studentMemory.setCurrentStudent(name);
+    setShowStudentSelector(false);
+    setShowInitiation(!studentData.initiated);
+  };
+
+  // Handle creating a new student
+  const handleCreateStudent = (name) => {
+    if (!name.trim()) return;
+    
+    // Create new student
+    const created = studentMemory.createStudent(name);
+    if (!created) {
+      alert('Student already exists or invalid name!');
+      return;
+    }
+
+    // Save to backend
+    fetch('http://127.0.0.1:8000/save_student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_name: name,
+        initiated: false
+      })
+    }).catch(err => console.log('Backend save failed:', err));
+
+    // Select the new student
+    setAllStudents(studentMemory.getAllStudents());
+    handleSelectStudent(name);
+  };
+
+  // Handle student initiation (entering the ashram)
   const handleInitiation = (name) => {
     if (!name.trim()) return;
+
+    // Update student data
+    studentMemory.updateStudentData(name, {
+      initiated: true,
+      chatHistory: []
+    });
+
     setStudentName(name);
     setIsInitiated(true);
     setShowInitiation(false);
-    localStorage.setItem('dronaStudentName', name);
-    localStorage.setItem('dronaInitiated', 'true');
-    localStorage.setItem('dronaLevel', 'Novice');
-    localStorage.setItem('dronaRespect', '50');
-    localStorage.setItem('dronaQuestionsAsked', '0');
+    studentMemory.setCurrentStudent(name);
     
-    // Add initiation message to chat
-    const initiationMessage = {
-      type: 'guru',
-      text: `Welcome, ${name}. I am Dronacharya, reborn to guide students like you. You enter my ashram as a Novice. Prove your dedication, and you shall rise to become a true warrior of dharma. Ask your first question, young disciple.`,
-      timestamp: new Date().toLocaleTimeString()
-    };
-    setChatHistory([initiationMessage]);
+    // Start with empty chat - guru only speaks when student asks
+    setChatHistory([]);
+    studentMemory.updateStudentData(name, { chatHistory: [] });
   };
+
+  // Handle switching to student selector
+  const handleSwitchStudent = () => {
+    setShowStudentSelector(true);
+  };
+
+  // Handle deleting a student
+  const handleDeleteStudent = (name) => {
+    if (window.confirm(`Are you sure you want to delete ${name}'s profile? This cannot be undone.`)) {
+      // Delete from backend
+      fetch(`http://127.0.0.1:8000/delete_student/${name}`, {
+        method: 'DELETE'
+      }).catch(err => console.log('Backend delete failed:', err));
+      
+      // Delete from localStorage
+      studentMemory.deleteStudent(name);
+      setAllStudents(studentMemory.getAllStudents());
+      
+      // If deleting current student, switch to selector
+      if (studentName === name) {
+        setShowStudentSelector(true);
+        setStudentName('');
+        setIsInitiated(false);
+        setChatHistory([]);
+      }
+    }
+  };
+
+  // Handle deleting only the chat history (clears UI but keeps backend files)
+  const handleDeleteChat = () => {
+    if (window.confirm(`Delete chat history from UI? Backend files will be preserved for system records.`)) {
+      // Clear from UI
+      setChatHistory([]);
+      
+      // Clear from localStorage
+      if (studentName) {
+        studentMemory.updateStudentData(studentName, {
+          chatHistory: []
+        });
+      }
+    }
+  };
+
+  // Initialize app - load student if available, show selector otherwise
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const currentStudent = studentMemory.getCurrentStudent();
+    
+    if (currentStudent) {
+      // Load existing student
+      handleSelectStudent(currentStudent);
+      
+      // Send welcome message
+      setTimeout(() => {
+        const welcomeMessage = {
+          type: 'guru',
+          text: `Welcome back, ${currentStudent}. Your guru has been waiting for you. What wisdom do you seek today?`,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        setChatHistory(prev => {
+          if (prev.length === 0) {
+            speak(welcomeMessage.text, 'en');
+            return [welcomeMessage];
+          }
+          return prev;
+        });
+      }, 1000);
+    } else {
+      // No student active - show selector
+      setShowStudentSelector(true);
+      setShowInitiation(false);
+    }
+  }, []);
+
 
   // Astra Mode Button Handlers
   const toggleBookmarkAstra = () => {
@@ -167,69 +300,11 @@ function App() {
     }
   };
 
-  // Update respect meter based on question quality
-  const updateRespect = (change) => {
-    const newRespect = Math.max(0, Math.min(100, respectMeter + change));
-    setRespectMeter(newRespect);
-    localStorage.setItem('dronaRespect', newRespect.toString());
-    
-    // Level progression
-    if (newRespect >= 90 && studentLevel === 'Master Disciple') {
-      setStudentLevel('Maha-Rathi');
-      localStorage.setItem('dronaLevel', 'Maha-Rathi');
-    } else if (newRespect >= 75 && studentLevel === 'Advanced Warrior') {
-      setStudentLevel('Master Disciple');
-      localStorage.setItem('dronaLevel', 'Master Disciple');
-    } else if (newRespect >= 60 && studentLevel === 'Warrior') {
-      setStudentLevel('Advanced Warrior');
-      localStorage.setItem('dronaLevel', 'Advanced Warrior');
-    } else if (newRespect >= 40 && studentLevel === 'Disciple') {
-      setStudentLevel('Warrior');
-      localStorage.setItem('dronaLevel', 'Warrior');
-    } else if (newRespect >= 20 && studentLevel === 'Novice') {
-      setStudentLevel('Disciple');
-      localStorage.setItem('dronaLevel', 'Disciple');
-    }
-  };
-
-
-
-  const dailyWisdom = [
-    "Morning brings clarity. Like an archer at dawn, aim your intentions with precision.",
-    "The afternoon sun tests endurance. Remember, even in heat of battle, maintain your dharma.",
-    "Evening is for reflection. What did you learn today, dear student?",
-    "Night approaches. Just as warriors rest, so must the mind find peace in meditation."
-  ];
-
-  // Send daily wisdom based on time
+  // eslint-disable-next-line no-unused-vars
   const sendDailyWisdom = () => {
-    if (!isInitiated) return;
-    
-    const hour = new Date().getHours();
-    let message = "";
-    
-    if (hour >= 6 && hour < 12) {
-      message = dailyWisdom[0];
-    } else if (hour >= 12 && hour < 16) {
-      message = dailyWisdom[1];
-    } else if (hour >= 16 && hour < 20) {
-      message = dailyWisdom[2];
-    } else if (hour >= 20 || hour < 4) {
-      message = dailyWisdom[3];
-    }
-    
-    if (message && chatHistory.length === 1) { // Only send if just initiated
-      const wisdomMessage = {
-        type: 'guru-wisdom',
-        text: message,
-        timestamp: new Date().toLocaleTimeString()
-      };
-      
-      setTimeout(() => {
-        setChatHistory(prev => [...prev, wisdomMessage]);
-        speak(message, 'en');
-      }, 3000);
-    }
+    // DISABLED: Do not send automatic unsolicited wisdom messages
+    // Guru only speaks when student asks a question
+    return;
   };
 
   // Get theme class based on mode and vidya
@@ -254,28 +329,11 @@ function App() {
     return '';
   };
 
-  // Send initial guru message in Chat Mode - ONLY ONCE on app start
+  // eslint-disable-next-line no-unused-vars
   const sendInitialGuruMessage = () => {
-    if (!isInitiated || currentMode !== 'chat' || greetingShown) return;
-    
-    // Send initial message only once when chat mode is active and greeting hasn't been shown
-    const initialMessage = {
-      type: 'guru',
-      text: `Shishya, you have approached your guru. In which art or wisdom do you desire instruction?`,
-      timestamp: new Date().toLocaleTimeString()
-    };
-    
-    setTimeout(() => {
-      setChatHistory(prev => {
-        // Only set if currently empty (fresh start)
-        if (prev.length === 0) {
-          setGreetingShown(true); // Mark greeting as shown
-          return [initialMessage];
-        }
-        return prev;
-      });
-      speak(initialMessage.text, 'en');
-    }, 500);
+    // DISABLED: Do not send automatic unsolicited messages
+    // Guru only speaks when student asks a question
+    return;
   };
 
   // 🎙️ Clean text for TTS - remove emojis, special chars, brackets, numbers
@@ -813,9 +871,11 @@ function App() {
 
 
 
+  // eslint-disable-next-line no-unused-vars
   const hasLearnedAnything = () => {
     return !!currentVidya || astraSegments.length > 0;
   };
+  // eslint-disable-next-line no-unused-vars
   const getLearnedSubject = () => {
     if (currentVidya) return currentVidya;
     if (astraSegments.length > 0) return currentAstra;
@@ -843,6 +903,65 @@ function App() {
         text: "Shishya, sit close. Today I shall unfold the tales of old—the stories that shaped warriors and kings. Which tale calls to you? A warrior's journey? A battle? A hidden lesson?",
       },
     ]);
+    // Reset chapter tracking
+    setCurrentStoryId('');
+    setCurrentChapter(0);
+    setTotalChapters(0);
+    setStoryState({});
+  };
+
+  // Alias for restart button - same as resetStoryHistory
+  const restartStory = resetStoryHistory;
+
+  // ✨ Continue Story - Used by "Continue" button in Ithihaasa Mode
+  const continueStory = async () => {
+    // Simple: just ask for next part of story
+    const continuePrompt = "Continue the story...";
+    
+    // Add to story history  
+    setStoryHistory(prev => [...prev, { role: 'shishya', text: continuePrompt }]);
+    
+    // Ask the backend for next chapter
+    setLoading(true);
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: continuePrompt,
+          lang: 'en',
+          student_name: studentName,
+          mode: 'samvad',
+          vidya: 'itihaasa',
+          vidya_mode: 'learn',
+          chat_history: storyHistory
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data && data.answer) {
+        const guruMessage = { role: 'guru', text: data.answer };
+        setStoryHistory(prev => [...prev, guruMessage]);
+        
+        // Save to student memory
+        if (studentName) {
+          const studentData = studentMemory.getStudentData(studentName);
+          studentData.story_history = storyHistory;
+          studentMemory.setStudentData(studentName, studentData);
+        }
+      } else {
+        setStoryHistory(prev => [...prev, { role: 'guru', text: 'The story continues, but my thoughts are unclear. Try again.' }]);
+      }
+    } catch (error) {
+      console.error('Error continuing story:', error);
+      setStoryHistory(prev => [...prev, { role: 'guru', text: 'Forgive me, Shishya. I seem to have lost my train of thought.' }]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 🌅 Ask backend
@@ -861,11 +980,6 @@ function App() {
     setLoading(true);
     const lang = detectLanguage(finalQuestion);
 
-    // Update questions count
-    const newQuestionsCount = questionsAsked + 1;
-    setQuestionsAsked(newQuestionsCount);
-    localStorage.setItem('dronaQuestionsAsked', newQuestionsCount.toString());
-
     // Add user message to chat
     const userMessage = {
       type: 'user',
@@ -881,59 +995,33 @@ function App() {
     setQuestion(""); // Clear input
 
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          question: finalQuestion, 
-          lang,
-          student_level: studentLevel,
-          respect_meter: respectMeter,
-          questions_count: newQuestionsCount,
-          mode: currentMode,
-          vidya: currentVidya
-        }),
-      });
-      const data = await response.json();
-      const responseText = data.answer || "No response from DRONA.";
-      
-      // Advanced respect calculation based on question quality
-      let respectChange = 0;
+      // Check if student is asking about their name
       const questionLower = finalQuestion.toLowerCase();
+      const nameKeywords = ['my name', 'what is my name', 'who am i', 'i am', 'my name is', 'what\'s my name', 'tell me my name'];
+      const isNameQuestion = nameKeywords.some(keyword => questionLower.includes(keyword));
       
-      // LOSE respect for bad questions
-      if (finalQuestion.length < 5) {
-        respectChange = -5; // Very short, lazy question
-      } else if (finalQuestion.length < 10) {
-        respectChange = -2; // Too brief
-      }
-      // GAIN minimal respect for basic questions
-      else if (finalQuestion.length < 20) {
-        respectChange = 0; // No change - bare minimum
-      }
-      // GAIN respect for thoughtful questions
-      else if (finalQuestion.length > 50) {
-        respectChange = 3; // Very detailed question
-      } else if (finalQuestion.length > 30) {
-        respectChange = 2; // Good question
+      let responseText = "No response from DRONA.";
+      
+      // If asking about name, respond directly
+      if (isNameQuestion && studentName) {
+        responseText = `Your name is ${studentName}, my disciple. You have entered my ashram with this identity. Now, use this name to build your legacy through learning and dedication.`;
       } else {
-        respectChange = 1; // Decent question
+        // Send to backend for other questions
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            question: finalQuestion, 
+            lang,
+            student_name: studentName,
+            mode: currentMode,
+            vidya: currentVidya,
+            vidya_mode: vidyaMode  // Pass learn/test mode
+          }),
+        });
+        const data = await response.json();
+        responseText = data.answer || "No response from DRONA.";
       }
-      
-      // BONUS respect for asking about specific topics
-      if (questionLower.includes('dharma') || questionLower.includes('arjuna') || 
-          questionLower.includes('mahabharata') || questionLower.includes('war') ||
-          questionLower.includes('teach') || questionLower.includes('wisdom')) {
-        respectChange += 2; // Shows genuine interest
-      }
-      
-      // PENALTY for modern tech questions
-      if (questionLower.includes('computer') || questionLower.includes('led') ||
-          questionLower.includes('arduino') || questionLower.includes('code')) {
-        respectChange -= 3; // Angers the guru
-      }
-      
-      updateRespect(respectChange);
       
       // Add guru message to chat
       const guruMessage = {
@@ -941,7 +1029,43 @@ function App() {
         text: responseText,
         timestamp: new Date().toLocaleTimeString()
       };
-      setChatHistory(prev => [...prev, guruMessage]);
+      setChatHistory(prev => {
+        const updated = [...prev, guruMessage];
+        // Save to student memory
+        if (studentName) {
+          studentMemory.updateStudentData(studentName, {
+            chatHistory: updated
+          });
+          
+          // Save student profile to backend
+          fetch('http://127.0.0.1:8000/save_student', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              student_name: studentName,
+              initiated: true
+            })
+          }).catch(err => console.log('Backend save failed:', err));
+        }
+        return updated;
+      });
+      
+      // Check if question is related to culture/history and save to heritage
+      const heritageKeywords = ['culture', 'history', 'tradition', 'festival', 'mythology', 'mahabharata', 'ramayana', 'dharma', 'vedas', 'upanishad', 'ashram', 'guru', 'kundalini', 'chakra', 'yoga', 'ayurveda', 'tantra', 'mantra', 'ritual', 'ceremony'];
+      const isHeritageQuestion = heritageKeywords.some(keyword => questionLower.includes(keyword));
+      
+      if (isHeritageQuestion && studentName) {
+        fetch('http://127.0.0.1:8000/save_heritage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: finalQuestion,
+            answer: responseText,
+            student_name: studentName,
+            category: 'culture'
+          })
+        }).catch(err => console.log('Heritage save failed:', err));
+      }
       
       // If in story mode, also add to story history
       if (currentMode === 'story') {
@@ -962,6 +1086,17 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Test submission handler for vidya test mode
+  const handleTestSubmit = async () => {
+    if (!question.trim()) return;
+    
+    setVidyaTestAnswers([...vidyaTestAnswers, question]);
+    setVidyaTestScore(Math.min(vidyaTestScore + 1, 10));
+    
+    await askDrona();
+    setQuestion('');
   };
 
   // 🎶 Background meditation sound auto-start & initialize voices
@@ -1008,9 +1143,8 @@ function App() {
   // Send daily wisdom after initiation
   useEffect(() => {
     if (isInitiated) {
-      sendDailyWisdom();
-      // Send initial guru message in chat mode
-      sendInitialGuruMessage();
+      // DISABLED: Do not send automatic messages
+      // Guru only speaks when student asks a question
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInitiated]);
@@ -1039,9 +1173,8 @@ function App() {
     // Reset form and UI states
     setShowAstraLock(false);
 
-    // Camera management based on mode
-    // Stop camera if current mode doesn't require it
-    if (!shouldCameraBeActive() && !shouldCameraBeOptional()) {
+    // CAMERA LIFECYCLE: Stop camera if exiting vidya mode
+    if (currentMode !== 'vidya') {
       stopCamera();
     }
   }, [currentMode]);
@@ -1054,7 +1187,8 @@ function App() {
   // Send initial guru message when switching to chat mode
   useEffect(() => {
     if (currentMode === 'chat') {
-      sendInitialGuruMessage();
+      // DISABLED: Do not send automatic messages
+      // Guru only speaks when student asks a question
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMode]);
@@ -1101,9 +1235,89 @@ function App() {
     <div className="drona-app">
       <div className="background-aura"></div>
 
+      {/* Student Selector Modal */}
+      {showStudentSelector && (
+        <div className="student-selector-modal">
+          <div className="student-selector-content">
+            <h2>🙏 Select Your Disciple Profile</h2>
+            <p className="selector-subtitle">Welcome to Dronacharya's Ashram</p>
+            
+            {/* Existing Students */}
+            {allStudents.length > 0 && (
+              <div className="students-list">
+                <p className="list-title">📚 Your Past Learning:</p>
+                {allStudents.map(name => {
+                  return (
+                    <div key={name} className="student-item">
+                      <button
+                        className="student-btn"
+                        onClick={() => handleSelectStudent(name)}
+                      >
+                        <span className="student-name">{name}</span>
+                      </button>
+                      <button
+                        className="delete-student-btn"
+                        onClick={() => handleDeleteStudent(name)}
+                        title={`Delete ${name}'s profile`}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  );
+                })}}
+              </div>
+            )}
+            
+            {/* New Student Input */}
+            <div className="new-student-section">
+              <p className="section-title">🌟 Begin New Journey:</p>
+              <input
+                type="text"
+                placeholder="Enter your name as new disciple..."
+                className="new-student-input"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCreateStudent(e.target.value);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <button
+                className="create-student-btn"
+                onClick={(e) => {
+                  const input = e.target.previousSibling;
+                  handleCreateStudent(input.value);
+                  input.value = '';
+                }}
+              >
+                Enter Ashram
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Left Sidebar - Mode Selector */}
       {isInitiated && (
         <div className="mode-sidebar">
+          {/* Student Management Buttons */}
+          <div className="student-controls">
+            <button
+              className="switch-student-btn"
+              onClick={handleSwitchStudent}
+              title="Switch to a different student"
+            >
+              🔄 Switch Student
+            </button>
+            <button
+              className="delete-chat-btn"
+              onClick={handleDeleteChat}
+              title="Clear chat from UI (backend preserved)"
+            >
+              🗑️ Clear Chat
+            </button>
+          </div>
+
           <h3 className="sidebar-title">Training Modes</h3>
           
           {/* Mode Selector */}
@@ -1129,8 +1343,20 @@ function App() {
             <button 
               className={`mode-btn ${currentMode === 'vidya' ? 'active' : ''}`}
               onClick={() => {
-                setCurrentMode('vidya');
-                setShowVidyaSelector(!showVidyaSelector);
+                if (currentMode === 'vidya') {
+                  // Toggle off
+                  setCurrentMode('chat');
+                  setShowVidyaSelector(false);
+                  setVidyaMode(null);
+                  setCurrentVidya('');
+                } else {
+                  // Toggle on - show Learn/Test selection
+                  setCurrentMode('vidya');
+                  setVidyaMode(null);
+                  setCurrentVidya('');
+                  setShowVidyaSelector(true);
+                  setShowVidyaSelection(false);
+                }
               }}
               ref={vidyaBtnRef}
             >
@@ -1142,16 +1368,152 @@ function App() {
         </div>
       )}
 
-      {isInitiated && currentMode === 'vidya' && showVidyaSelector && (
-        <div className="vidya-flyout" style={{ top: vidyaFlyoutTop, left: 220 }}>
-          <p className="vidya-title">🕉️ Select Ancient Knowledge (Vidya):</p>
-          <div className="vidya-buttons">
-            <button className={`vidya-btn ${currentVidya === 'dhyana' ? 'active' : ''}`} onClick={() => { setCurrentVidya('dhyana'); setShowVidyaSelector(false); }}>🧘 Dhyana Vidya (Meditation)</button>
-            <button className={`vidya-btn ${currentVidya === 'khadga' ? 'active' : ''}`} onClick={() => { setCurrentVidya('khadga'); setShowVidyaSelector(false); }}>🗡️ Khadga Vidya (Sword)</button>
-            <button className={`vidya-btn ${currentVidya === 'dhanur' ? 'active' : ''}`} onClick={() => { setCurrentVidya('dhanur'); setShowVidyaSelector(false); }}>🏹 Dhanur Vidya (Archery)</button>
-            <button className={`vidya-btn ${currentVidya === 'dharma' ? 'active' : ''}`} onClick={() => { setCurrentVidya('dharma'); setShowVidyaSelector(false); }}>⚖️ Dharma Vidya (Righteousness)</button>
-            <button className={`vidya-btn ${currentVidya === 'yudha' ? 'active' : ''}`} onClick={() => { setCurrentVidya('yudha'); setShowVidyaSelector(false); }}>⚔️ Yudha Vidya (War Strategy)</button>
-            <button className={`vidya-btn ${currentVidya === 'shastra' ? 'active' : ''}`} onClick={() => { setCurrentVidya('shastra'); setShowVidyaSelector(false); }}>📚 Shastra Vidya (Ancient Texts)</button>
+      {isInitiated && currentMode === 'vidya' && !vidyaMode && showVidyaSelector && (
+        <div className="vidya-selection-modal">
+          <div className="vidya-modal-content">
+            <button 
+              className="back-btn-modal"
+              onClick={() => {
+                setShowVidyaSelector(false);
+                setCurrentMode('chat');
+              }}
+            >
+              ← Back
+            </button>
+            
+            <h2 className="vidya-modal-title">🕉️ Choose Your Path of Knowledge</h2>
+            <p className="vidya-modal-subtitle">How would you like to engage with the Vidyas?</p>
+            
+            <div className="vidya-mode-buttons">
+              <button 
+                className="vidya-learn-btn"
+                onClick={() => {
+                  setVidyaMode('learn');
+                  setShowVidyaSelection(true);
+                }}
+              >
+                <div className="mode-icon">📖</div>
+                <div className="mode-title">Learn Knowledge</div>
+                <div className="mode-description">Receive teachings from Dronacharya. Master each vidya through guided lessons.</div>
+              </button>
+              
+              <button 
+                className="vidya-test-btn"
+                onClick={() => {
+                  setVidyaMode('test');
+                  setShowVidyaSelection(true);
+                }}
+              >
+                <div className="mode-icon">🎯</div>
+                <div className="mode-title">Test Knowledge</div>
+                <div className="mode-description">Challenge yourself! Guru tests your understanding through questions and scenarios.</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isInitiated && currentMode === 'vidya' && vidyaMode && showVidyaSelection && (
+        <div className="vidya-submodes-modal">
+          <div className="vidya-modal-header">
+            <button 
+              className="back-btn"
+              onClick={() => {
+                setVidyaMode(null);
+                setShowVidyaSelection(false);
+              }}
+            >
+              ← Back
+            </button>
+            <h2 className="vidya-modal-title-sub">
+              {vidyaMode === 'learn' ? '📖 Choose a Lesson' : '🎯 Choose a Test'}
+            </h2>
+          </div>
+          
+          <div className="vidya-submodes-grid">
+            <button 
+              className="vidya-submode-btn dhyana"
+              onClick={() => { 
+                setCurrentVidya('dhyana'); 
+                setShowVidyaSelection(false);
+              }}
+            >
+              <div className="submode-icon">🧘</div>
+              <div className="submode-name">Dhyana Vidya</div>
+              <div className="submode-subtitle">Meditation & Inner Peace</div>
+            </button>
+            
+            <button 
+              className="vidya-submode-btn khadga"
+              onClick={() => { 
+                setCurrentVidya('khadga'); 
+                setShowVidyaSelection(false);
+              }}
+            >
+              <div className="submode-icon">🗡️</div>
+              <div className="submode-name">Khadga Vidya</div>
+              <div className="submode-subtitle">Sword & Combat Skills</div>
+            </button>
+            
+            <button 
+              className="vidya-submode-btn dhanur"
+              onClick={() => { 
+                setCurrentVidya('dhanur'); 
+                setShowVidyaSelection(false);
+              }}
+            >
+              <div className="submode-icon">🏹</div>
+              <div className="submode-name">Dhanur Vidya</div>
+              <div className="submode-subtitle">Archery & Precision</div>
+            </button>
+            
+            <button 
+              className="vidya-submode-btn dharma"
+              onClick={() => { 
+                setCurrentVidya('dharma'); 
+                setShowVidyaSelection(false);
+              }}
+            >
+              <div className="submode-icon">⚖️</div>
+              <div className="submode-name">Dharma Vidya</div>
+              <div className="submode-subtitle">Righteousness & Ethics</div>
+            </button>
+            
+            <button 
+              className="vidya-submode-btn yudha"
+              onClick={() => { 
+                setCurrentVidya('yudha'); 
+                setShowVidyaSelection(false);
+              }}
+            >
+              <div className="submode-icon">⚔️</div>
+              <div className="submode-name">Yudha Vidya</div>
+              <div className="submode-subtitle">War Strategy & Tactics</div>
+            </button>
+            
+            <button 
+              className="vidya-submode-btn shastra"
+              onClick={() => { 
+                setCurrentVidya('shastra'); 
+                setShowVidyaSelection(false);
+              }}
+            >
+              <div className="submode-icon">📚</div>
+              <div className="submode-name">Shastra Vidya</div>
+              <div className="submode-subtitle">Ancient Texts & Wisdom</div>
+            </button>
+
+            <button 
+              className="vidya-submode-btn gada"
+              onClick={() => { 
+                setCurrentVidya('gada'); 
+                setShowVidyaSelection(false);
+              }}
+            >
+              <div className="submode-icon">💪</div>
+              <div className="submode-name">Gada Vidya</div>
+              <div className="submode-subtitle">Mace Warrior Training</div>
+            </button>
           </div>
         </div>
       )}
@@ -1161,9 +1523,9 @@ function App() {
 
       {/* Initiation Modal */}
       {showInitiation && (
-        <div className="initiation-modal">
+        <div className="initiation-modal">>
           <div className="initiation-content">
-            <h2>🙏 Welcome to Dronacharya's Ashram</h2>
+            <h2>🙏 Welcome to Dronacharya's Ashram, {studentName}</h2>
             <p className="initiation-text">
               I am Dronacharya, reborn from the age of Mahabharata. I trained the greatest warriors - 
               Arjuna, Bhima, Duryodhana. I fought in the Kurukshetra war and fell when I heard false news 
@@ -1171,27 +1533,16 @@ function App() {
             </p>
             <p className="initiation-text">
               Now I return to guide students in the eternal wisdom of dharma, warfare, and the Vedas. 
-              Before you enter my gurukul, tell me your name, young disciple.
+              You are now entering my gurukul. Are you ready to learn?
             </p>
-            <input
-              type="text"
-              placeholder="Enter your name..."
-              className="initiation-input"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleInitiation(e.target.value);
-                }
-              }}
-              autoFocus
-            />
             <button 
               className="initiation-btn"
-              onClick={(e) => {
-                const input = e.target.previousSibling;
-                handleInitiation(input.value);
+              onClick={() => {
+                handleInitiation(studentName);
               }}
+              autoFocus
             >
-              Enter Ashram
+              Yes, I am Ready 🙏
             </button>
           </div>
         </div>
@@ -1218,7 +1569,12 @@ function App() {
             {currentMode === 'story' && <h2 className="mode-title">📖 Itihasa - Stories from Mahabharata</h2>}
 
             {currentMode === 'weapons' && <h2 className="mode-title">🗡️ Astras - Secrets of Celestial Weapons</h2>}
-            {currentMode === 'vidya' && <h2 className="mode-title">🕉️ Ancient Vidya - {currentVidya.toUpperCase()}</h2>}
+            {currentMode === 'vidya' && (
+              <div>
+                <h2 className="mode-title">🕉️ {currentVidya ? currentVidya.charAt(0).toUpperCase() + currentVidya.slice(1) + ' Vidya' : 'Ancient Vidya'}</h2>
+                {vidyaMode && <p className="vidya-mode-indicator">{vidyaMode === 'learn' ? '📖 Learning Mode' : '🎯 Testing Mode'}</p>}
+              </div>
+            )}
           </div>
         )}
 
@@ -1356,13 +1712,13 @@ function App() {
         {currentMode === 'story' && (
           <IthihasaMode 
             studentName={studentName}
-            studentLevel={studentLevel}
-            respectMeter={respectMeter}
             language={detectLanguage("story")}
             speak={speak}
             askDrona={askDrona}
             storyHistory={storyHistory}
             resetStoryHistory={resetStoryHistory}
+            restartStory={restartStory}
+            continueStory={continueStory}
             isLoading={loading}
           />
         )}
@@ -1392,13 +1748,19 @@ function App() {
                     type="text" 
                     placeholder="Search astras..." 
                     className="astra-search-input"
+                    value={astraSearchQuery}
+                    onChange={(e) => setAstraSearchQuery(e.target.value)}
                   />
                   <span className="search-icon">🔍</span>
                 </div>
 
                 {/* Astra List */}
                 <div className="astra-cards-container">
-                  {astraList.map((astra) => (
+                  {astraList
+                    .filter((astra) => 
+                      astra.name.toLowerCase().includes(astraSearchQuery.toLowerCase())
+                    )
+                    .map((astra) => (
                     <div
                       key={astra.name}
                       className={`astra-card ${currentAstra === astra.name ? 'active-card' : ''}`}
@@ -1415,6 +1777,14 @@ function App() {
                       {currentAstra === astra.name && <div className="active-indicator"></div>}
                     </div>
                   ))}
+                  
+                  {/* No Results Message */}
+                  {astraList.filter((astra) => astra.name.toLowerCase().includes(astraSearchQuery.toLowerCase())).length === 0 && (
+                    <div className="astra-no-results">
+                      <p>🔍 No astras found</p>
+                      <small>Try a different search term</small>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1722,71 +2092,380 @@ function App() {
           </div>
         )}
 
-        {/* VIDYA MODE UI - Component-Based Vidya Modes */}
+        {/* ============ VIDYA TRAINING - FULL SCREEN MODE WITH LIVE CAMERA ============ */}
         {currentMode === 'vidya' && currentVidya === 'dhyana' && (
           <DhyanaMode 
-            studentName={studentName}
-            studentLevel={studentLevel}
-            respectMeter={respectMeter}
-            askDrona={askDrona}
+            studentName={studentName} 
+            askDrona={(msg) => { setQuestion(msg); setTimeout(askDrona, 100); }}
             chatHistory={chatHistory}
             isLoading={loading}
+            vidyaMode={currentVidya}
           />
         )}
 
         {currentMode === 'vidya' && currentVidya === 'khadga' && (
           <KhadgaMode 
-            studentName={studentName}
-            studentLevel={studentLevel}
-            respectMeter={respectMeter}
-            askDrona={askDrona}
+            studentName={studentName} 
+            askDrona={(msg) => { setQuestion(msg); setTimeout(askDrona, 100); }}
             chatHistory={chatHistory}
             isLoading={loading}
+            vidyaMode={currentVidya}
           />
         )}
 
         {currentMode === 'vidya' && currentVidya === 'dhanur' && (
           <DhanurMode 
-            studentName={studentName}
-            studentLevel={studentLevel}
-            respectMeter={respectMeter}
-            askDrona={askDrona}
+            studentName={studentName} 
+            askDrona={(msg) => { setQuestion(msg); setTimeout(askDrona, 100); }}
             chatHistory={chatHistory}
             isLoading={loading}
+            vidyaMode={currentVidya}
           />
         )}
 
         {currentMode === 'vidya' && currentVidya === 'dharma' && (
           <DharmaMode 
-            studentName={studentName}
-            studentLevel={studentLevel}
-            respectMeter={respectMeter}
-            askDrona={askDrona}
+            studentName={studentName} 
+            askDrona={(msg) => { setQuestion(msg); setTimeout(askDrona, 100); }}
             chatHistory={chatHistory}
             isLoading={loading}
+            vidyaMode={currentVidya}
           />
         )}
 
         {currentMode === 'vidya' && currentVidya === 'yudha' && (
           <YudhaMode 
-            studentName={studentName}
-            studentLevel={studentLevel}
-            respectMeter={respectMeter}
-            askDrona={askDrona}
+            studentName={studentName} 
+            askDrona={(msg) => { setQuestion(msg); setTimeout(askDrona, 100); }}
             chatHistory={chatHistory}
             isLoading={loading}
+            vidyaMode={currentVidya}
           />
         )}
 
         {currentMode === 'vidya' && currentVidya === 'shastra' && (
           <ShastraMode 
-            studentName={studentName}
-            studentLevel={studentLevel}
-            respectMeter={respectMeter}
-            askDrona={askDrona}
+            studentName={studentName} 
+            askDrona={(msg) => { setQuestion(msg); setTimeout(askDrona, 100); }}
             chatHistory={chatHistory}
             isLoading={loading}
+            vidyaMode={currentVidya}
           />
+        )}
+
+        {currentMode === 'vidya' && currentVidya === 'gada' && (
+          <GadaMode 
+            studentName={studentName} 
+            askDrona={(msg) => { setQuestion(msg); setTimeout(askDrona, 100); }}
+            chatHistory={chatHistory}
+            isLoading={loading}
+            vidyaMode={currentVidya}
+          />
+        )}
+
+        {/* ============ VIDYA TRAINING UI - SPLIT SCREEN DESIGN ============ */}
+        {currentMode === 'vidya' && vidyaMode && (
+          <div className="vidya-split-container">
+            {/* LEFT PANEL - CONTENT DISPLAY */}
+            <div className="vidya-left-panel">
+              {/* HEADER */}
+              <div className="vidya-training-header">
+                <div className="header-title">
+                  <span className="mode-icon">{vidyaMode === 'learn' ? '📚' : '🎯'}</span>
+                  <div className="header-text">
+                    <h2>{currentVidya.toUpperCase()}</h2>
+                    <p>{vidyaMode === 'learn' ? 'Learning Mode' : 'Testing Mode'}</p>
+                  </div>
+                </div>
+                <button 
+                  className="btn-exit-vidya" 
+                  onClick={() => {
+                    setCurrentMode('chat');
+                    setShowVidyaSelector(false);
+                    setVidyaMode('');
+                    setCurrentVidya('');
+                  }}
+                >
+                  ✕ Exit
+                </button>
+              </div>
+
+              {/* MODE-SPECIFIC PROGRESS BAR */}
+              {vidyaMode === 'learn' && (
+                <div className="progress-section">
+                  <div className="progress-header">
+                    <span className="progress-title">📖 Lessons Completed</span>
+                    <span className="progress-count">{chatHistory.filter(msg => (msg.role || msg.type) === 'guru').length} lessons</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill" 
+                      style={{width: `${Math.min((chatHistory.filter(msg => (msg.role || msg.type) === 'guru').length / 10) * 100, 100)}%`}}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              {vidyaMode === 'test' && (
+                <div className="test-header-stats">
+                  <div className="stat-card">
+                    <span className="stat-label">Score</span>
+                    <span className="stat-value">{vidyaTestScore}<small>/10</small></span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">Accuracy</span>
+                    <span className="stat-value">{Math.round((vidyaTestScore / 10) * 100)}<small>%</small></span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">Questions</span>
+                    <span className="stat-value">{chatHistory.filter(msg => (msg.role || msg.type) === 'guru').length}<small>/10</small></span>
+                  </div>
+                </div>
+              )}
+
+              {/* CONTENT AREA */}
+              <div className="vidya-content-main">
+                {vidyaMode === 'learn' && (
+                  <div className="lesson-display">
+                    <div className="lesson-content">
+                      {chatHistory.filter(msg => (msg.role || msg.type) === 'guru').length > 0 ? (
+                        chatHistory.filter(msg => (msg.role || msg.type) === 'guru').slice(-1).map((msg, idx) => (
+                          <div key={idx} className="lesson-text-animate">
+                            {msg.content || msg.text}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="lesson-placeholder">
+                          <p>👨‍🏫 Drona is ready to teach you...</p>
+                          <p><small>Ask a question to start your {currentVidya} learning journey</small></p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {vidyaMode === 'test' && (
+                  <div className="question-display">
+                    <div className="question-content">
+                      {chatHistory.filter(msg => (msg.role || msg.type) === 'guru').length > 0 ? (
+                        chatHistory.filter(msg => (msg.role || msg.type) === 'guru').slice(-1).map((msg, idx) => (
+                          <div key={idx} className="question-text-animate">
+                            <p className="question-prompt">❓ Question</p>
+                            {msg.content || msg.text}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="question-placeholder">
+                          <p>🎯 Ready to test your knowledge?</p>
+                          <p><small>Answer questions to assess your {currentVidya} mastery</small></p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* FOOTER - ACTION BUTTONS */}
+              <div className="vidya-content-footer">
+                {vidyaMode === 'learn' && (
+                  <button 
+                    className="btn-action btn-next-lesson"
+                    onClick={() => {
+                      setQuestion(`What's the next concept I should learn in ${currentVidya}?`);
+                      askDrona();
+                    }}
+                    disabled={loading}
+                  >
+                    <span className="btn-icon">➡️</span>
+                    <span className="btn-text">{loading ? 'Loading...' : 'Next Lesson'}</span>
+                  </button>
+                )}
+                {vidyaMode === 'test' && (
+                  <button 
+                    className="btn-action btn-next-question"
+                    onClick={() => {
+                      setQuestion(`Next question please`);
+                      askDrona();
+                    }}
+                    disabled={loading}
+                  >
+                    <span className="btn-icon">➡️</span>
+                    <span className="btn-text">{loading ? 'Loading...' : 'Next Question'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* RIGHT PANEL - CHAT/INTERACTION */}
+            <div className="vidya-right-panel">
+              {/* CHAT HEADER */}
+              <div className="chat-header">
+                <h3>💬 Interaction with Drona</h3>
+                <div className="mode-switch-buttons">
+                  <button
+                    className={`mode-toggle ${vidyaMode === 'learn' ? 'active' : ''}`}
+                    onClick={() => setVidyaMode('learn')}
+                  >
+                    📖 Learn
+                  </button>
+                  <button
+                    className={`mode-toggle ${vidyaMode === 'test' ? 'active' : ''}`}
+                    onClick={() => setVidyaMode('test')}
+                  >
+                    🎯 Test
+                  </button>
+                </div>
+              </div>
+
+              {/* CHAT HISTORY */}
+              <div className="chat-history">
+                {chatHistory.length === 0 ? (
+                  <div className="chat-empty">
+                    <p>No conversation yet</p>
+                  </div>
+                ) : (
+                  chatHistory.map((msg, idx) => {
+                    const role = msg.role || msg.type;
+                    const content = msg.content || msg.text;
+                    return (
+                      <div key={idx} className={`chat-message ${role}`}>
+                        <div className="message-avatar">
+                          {role === 'guru' ? '🧙' : '👤'}
+                        </div>
+                        <div className="message-content">
+                          <p>{content}</p>
+                          <span className="message-time">
+                            {msg.timestamp && typeof msg.timestamp === 'string' ? msg.timestamp : new Date().toLocaleTimeString()}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                {loading && (
+                  <div className="chat-message guru loading-message">
+                    <div className="message-avatar">🧙</div>
+                    <div className="message-content">
+                      <div className="loading-dots">
+                        <span></span><span></span><span></span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* QUICK ACTION BUTTONS */}
+              {vidyaMode === 'learn' && (
+                <div className="quick-actions">
+                  <button 
+                    className="quick-btn"
+                    onClick={() => {
+                      setQuestion(`Tell me more about the last concept you explained`);
+                      askDrona();
+                    }}
+                    disabled={loading}
+                  >
+                    📖 More Details
+                  </button>
+                  <button 
+                    className="quick-btn"
+                    onClick={() => {
+                      setQuestion(`Can you give me an example of this?`);
+                      askDrona();
+                    }}
+                    disabled={loading}
+                  >
+                    💡 Examples
+                  </button>
+                </div>
+              )}
+
+              {vidyaMode === 'test' && (
+                <div className="quick-actions">
+                  <button 
+                    className="quick-btn"
+                    onClick={() => {
+                      setQuestion(`Can you explain the correct answer?`);
+                      askDrona();
+                    }}
+                    disabled={loading}
+                  >
+                    🤔 Explain
+                  </button>
+                  <button 
+                    className="quick-btn"
+                    onClick={() => {
+                      setQuestion(`I want to learn more about this topic`);
+                      askDrona();
+                    }}
+                    disabled={loading}
+                  >
+                    📚 Learn More
+                  </button>
+                </div>
+              )}
+
+              {/* INPUT AREA */}
+              <div className="chat-input-area">
+                {vidyaMode === 'learn' && (
+                  <input
+                    type="text"
+                    className="chat-input"
+                    placeholder="Ask Drona anything about this topic..."
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !loading) {
+                        askDrona();
+                      }
+                    }}
+                    disabled={loading}
+                  />
+                )}
+                {vidyaMode === 'test' && (
+                  <textarea
+                    className="chat-input"
+                    placeholder="Type your answer here..."
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && e.ctrlKey && !loading) {
+                        handleTestSubmit();
+                      }
+                    }}
+                    disabled={loading}
+                    rows={3}
+                  />
+                )}
+                <div className="input-button-group">
+                  {vidyaMode === 'learn' ? (
+                    <button 
+                      className="btn-send"
+                      onClick={askDrona}
+                      disabled={loading || !question.trim()}
+                    >
+                      📤 Ask
+                    </button>
+                  ) : (
+                    <button 
+                      className="btn-send btn-submit"
+                      onClick={() => {
+                        if (question.trim()) {
+                          setVidyaTestAnswers([...vidyaTestAnswers, question]);
+                          setVidyaTestScore(vidyaTestScore + 1);
+                          askDrona();
+                          setQuestion('');
+                        }
+                      }}
+                      disabled={loading || !question.trim()}
+                    >
+                      ✅ Submit Answer
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {currentMode !== 'quiz' && (
@@ -1806,9 +2485,9 @@ function App() {
               className={`mic-btn ${isListening ? 'listening' : ''}`}
               onClick={isListening ? stopListening : startListening}
               disabled={loading}
-              title={isListening ? "Stop listening" : "Click to speak"}
+              title={isListening ? "Stop listening (🛑)" : "Click to speak (🎤)"}
             >
-              {isListening ? "🛑" : "🎤"}
+              {isListening ? "⏹" : "🎤"}
             </button>
             <button onClick={() => askDrona()} disabled={loading}>
               {loading ? "🙏 Thinking..." : "Ask Guru"}

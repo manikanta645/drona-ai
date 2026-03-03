@@ -1,0 +1,1 @@
+const fs=require('fs');const path='src/App.js';const s=fs.readFileSync(path,'utf8');const lines=s.split(/\r?\n/);const start=1188,end=1240;for(let i=start;i<=end && i<lines.length;i++){console.log((i+1).toString().padStart(4, ' ')+': '+lines[i]);}

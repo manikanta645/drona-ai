@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Compiled with Problems</title>
+  <style>
+    body {font-family: Arial, sans-serif; background:#111; color:#eee; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0;}
+    .msg {font-size:2rem; margin-bottom:2rem;}
+    .rand {font-size:1rem; color:#aaa;}
+  </style>
+</head>
+<body>
+  <div class="msg">Compiled with problems</div>
+  <div class="rand">Random thing: <span id="rand"></span></div>
+  <script>
+    const texts = [
+      "Oops! Something went wrong.",
+      "Error 404: Not Found.",
+      "Unexpected token in line 42.",
+      "Syntax error: missing semicolon.",
+      "Build failed: see logs.",
+      "Compilation aborted.",
+      "Debug mode: on.",
+      "Warning: deprecated API.",
+      "Stack overflow detected.",
+      "Runtime exception caught."
+    ];
+    document.getElementById('rand').textContent = texts[Math.floor(Math.random()*texts.length)];
+  </script>
+</body>
+</html>

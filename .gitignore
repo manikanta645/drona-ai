@@ -6,3 +6,5 @@ __pycache__/
 build/
 dist/
 .cache/
+backend/data/chroma_db/
+*.sqlite3

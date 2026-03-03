@@ -30,7 +30,7 @@ The system features a **Guru-Shishya (Teacher-Student)** dynamic where DRONA res
 ## 🏛️ Training Modes Explained
 
 ### **1. 💬 SAMVAD (Chat Mode)**
-**Function:** Open dialogue with your guru  
+**Function:** Open samvad with your guru  
 **What You Learn:** General wisdom, philosophy, guidance on any topic  
 **How It Works:** Free conversation where DRONA responds with ancient wisdom and practical guidance
 

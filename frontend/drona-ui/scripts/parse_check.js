@@ -1,0 +1,1 @@
+const fs=require('fs');const parser=require('@babel/parser');const code=fs.readFileSync('src/App.js','utf8');try{parser.parse(code,{sourceType:'module',plugins:['jsx','classProperties','optionalChaining','decorators-legacy']});console.log('PARSE_OK');}catch(e){console.error('PARSE_ERROR',e.message); if(e.loc) console.error('LOC',e.loc);}

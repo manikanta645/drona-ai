@@ -3,7 +3,6 @@ import './IthihasaMode.css';
 
 const IthihasaMode = ({ studentName, studentLevel, respectMeter, language, speak, askDrona, storyHistory = [], resetStoryHistory, isLoading = false }) => {
   const scrollContainerRef = useRef(null);
-  const inputRef = useRef(null);
 
   // Auto-scroll to bottom when new story content arrives
   useEffect(() => {

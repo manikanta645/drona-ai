@@ -1,0 +1,1 @@
+const fs=require('fs');const path='src/App.js';const s=fs.readFileSync(path,'utf8');const idx=79199;const start=Math.max(0,idx-200);const end=Math.min(s.length,idx+200);console.log(s.slice(start,end));

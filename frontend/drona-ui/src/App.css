@@ -124,6 +124,165 @@ body {
   transform: translateX(8px);
 }
 
+/* Switch Student Button */
+/* Student Control Buttons Container */
+.student-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.switch-student-btn {
+  height: 40px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #8b4513, #5c2e0e);
+  border: 2px solid #ff7700;
+  border-radius: 8px;
+  color: #ffaa00;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.switch-student-btn:hover {
+  background: linear-gradient(135deg, #a0522d, #704214);
+  border-color: #ffcc00;
+  color: #ffd966;
+  box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
+  transform: scale(1.05);
+}
+
+.delete-chat-btn {
+  height: 40px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #8b0000, #5c0000);
+  border: 2px solid #ff3333;
+  border-radius: 8px;
+  color: #ff6666;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.delete-chat-btn:hover {
+  background: linear-gradient(135deg, #a00000, #700000);
+  border-color: #ff5555;
+  color: #ff8888;
+  box-shadow: 0 0 15px rgba(255, 51, 51, 0.5);
+  transform: scale(1.05);
+}
+
+/* Vidya Flyout (popup) */
+.vidya-flyout {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #ff9900;
+  border-radius: 12px;
+  padding: 15px;
+  min-width: 260px;
+  box-shadow: 0 4px 20px rgba(255, 153, 0, 0.6);
+  z-index: 200;
+}
+
+.vidya-flyout .vidya-title {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  color: #ffd966;
+  text-align: center;
+}
+
+.vidya-flyout .vidya-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Container for the Test/Teach action buttons inside the flyout */
+/* Action buttons container: display buttons side‑by‑side */
+.vidya-action-side {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Submode list container when an action is selected */
+.vidya-submode-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vidya-flyout .vidya-btn {
+  background: rgba(255, 153, 0, 0.2);
+  border: 1px solid #ff9900;
+  color: #ffdd99;
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vidya-flyout .vidya-btn:hover {
+  background: rgba(255, 153, 0, 0.4);
+  transform: translateX(4px);
+}
+
+.vidya-flyout .vidya-btn.active {
+  background: linear-gradient(135deg, #ff9900, #ffcc00);
+  color: #000;
+}
+
+/* Action buttons for Test / Teach */
+.vidya-action-choice {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #ff9900;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.action-btn {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #ff9900;
+  color: #ffdd99;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: rgba(255, 153, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Fade-in animation for dynamic elements */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
 /* Main Content Area */
 .main-content {
   flex: 1;
@@ -265,6 +424,299 @@ body {
 .vidya-flyout .vidya-buttons .vidya-btn:nth-child(9) { animation-delay: 0.4s; }
 .vidya-flyout .vidya-buttons .vidya-btn:nth-child(10) { animation-delay: 0.45s; }
 
+/* ============================================================================ */
+/* NEW: VIDYA SELECTION MODAL (Learn vs Test) */
+/* ============================================================================ */
+.vidya-selection-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 400;
+  animation: fadeIn 0.3s ease;
+}
+
+.vidya-modal-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 3px solid #ff9900;
+  border-radius: 20px;
+  padding: 50px 40px;
+  max-width: 800px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(255, 153, 0, 0.4);
+  text-align: center;
+  position: relative;
+}
+
+.vidya-modal-title {
+  font-size: 2.5rem;
+  color: #ffd966;
+  margin: 0 0 15px;
+  text-shadow: 0 2px 10px rgba(255, 153, 0, 0.5);
+}
+
+.vidya-modal-subtitle {
+  font-size: 1.2rem;
+  color: #cccccc;
+  margin: 0 0 40px;
+}
+
+.vidya-mode-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.vidya-learn-btn,
+.vidya-test-btn {
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.3), rgba(255, 200, 0, 0.2));
+  border: 2px solid #ff9900;
+  border-radius: 15px;
+  padding: 30px 25px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  text-align: center;
+}
+
+.vidya-learn-btn:hover,
+.vidya-test-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.5), rgba(255, 200, 0, 0.4));
+  border-color: #ffcc00;
+  box-shadow: 0 10px 30px rgba(255, 153, 0, 0.5);
+  transform: translateY(-5px);
+}
+
+.vidya-test-btn:hover {
+  background: linear-gradient(135deg, rgba(100, 200, 255, 0.3), rgba(100, 220, 255, 0.2));
+  border-color: #64dcff;
+  box-shadow: 0 10px 30px rgba(100, 220, 255, 0.5);
+}
+
+.mode-icon {
+  font-size: 4rem;
+  margin: 0;
+}
+
+.mode-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ffd966;
+}
+
+.mode-description {
+  font-size: 0.9rem;
+  color: #aaaaaa;
+  line-height: 1.4;
+}
+
+/* ============================================================================ */
+/* NEW: VIDYA SUBMODES MODAL (Select which Vidya to Learn/Test) */
+/* ============================================================================ */
+.vidya-submodes-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 400;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.vidya-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  margin-bottom: 30px;
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  background: linear-gradient(135deg, #8b4513, #5c2e0e);
+  border: 2px solid #ff7700;
+  border-radius: 8px;
+  color: #ffaa00;
+  padding: 10px 15px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: linear-gradient(135deg, #a0522d, #704214);
+  transform: scale(1.1);
+}
+
+.back-btn-modal {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: linear-gradient(135deg, #8b4513, #5c2e0e);
+  border: 2px solid #ff7700;
+  border-radius: 8px;
+  color: #ffaa00;
+  padding: 10px 15px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 410;
+}
+
+.back-btn-modal:hover {
+  background: linear-gradient(135deg, #a0522d, #704214);
+  border-color: #ffcc00;
+  color: #ffd966;
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
+}
+
+.vidya-modal-title-sub {
+  font-size: 2.2rem;
+  color: #ffd966;
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(255, 153, 0, 0.5);
+}
+
+.vidya-submodes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.vidya-submode-btn {
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 200, 0, 0.1));
+  border: 2px solid #ff9900;
+  border-radius: 15px;
+  padding: 25px 15px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.vidya-submode-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.3), rgba(255, 200, 0, 0.2));
+  border-color: #ffcc00;
+  box-shadow: 0 8px 25px rgba(255, 153, 0, 0.5);
+  transform: translateY(-5px);
+}
+
+.vidya-submode-btn.dhyana {
+  border-color: #9400d3;
+}
+
+.vidya-submode-btn.dhyana:hover {
+  background: linear-gradient(135deg, rgba(148, 0, 211, 0.3), rgba(148, 0, 211, 0.2));
+  border-color: #da70d6;
+}
+
+.vidya-submode-btn.khadga {
+  border-color: #dc143c;
+}
+
+.vidya-submode-btn.khadga:hover {
+  background: linear-gradient(135deg, rgba(220, 20, 60, 0.3), rgba(220, 20, 60, 0.2));
+  border-color: #ff6b6b;
+}
+
+.vidya-submode-btn.dhanur {
+  border-color: #ff8c00;
+}
+
+.vidya-submode-btn.dhanur:hover {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.3), rgba(255, 140, 0, 0.2));
+  border-color: #ffb347;
+}
+
+.vidya-submode-btn.dharma {
+  border-color: #228b22;
+}
+
+.vidya-submode-btn.dharma:hover {
+  background: linear-gradient(135deg, rgba(34, 139, 34, 0.3), rgba(34, 139, 34, 0.2));
+  border-color: #90ee90;
+}
+
+.vidya-submode-btn.yudha {
+  border-color: #1e90ff;
+}
+
+.vidya-submode-btn.yudha:hover {
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.3), rgba(30, 144, 255, 0.2));
+  border-color: #87ceeb;
+}
+
+.vidya-submode-btn.shastra {
+  border-color: #daa520;
+}
+
+.vidya-submode-btn.shastra:hover {
+  background: linear-gradient(135deg, rgba(218, 165, 32, 0.3), rgba(218, 165, 32, 0.2));
+  border-color: #f0e68c;
+}
+
+.vidya-submode-btn.gada {
+  border-color: #ff7744;
+}
+
+.vidya-submode-btn.gada:hover {
+  background: linear-gradient(135deg, rgba(255, 119, 68, 0.3), rgba(255, 119, 68, 0.2));
+  border-color: #ffaa88;
+}
+
+.submode-icon {
+  font-size: 3rem;
+  margin: 0;
+}
+
+.submode-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffd966;
+}
+
+.submode-subtitle {
+  font-size: 0.85rem;
+  color: #aaaaaa;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes vidyaPopIn {
   0% { 
     opacity: 0; 
@@ -336,6 +788,22 @@ body {
   animation: modeTitleGlow 2s ease-in-out infinite;
 }
 
+.vidya-mode-indicator {
+  color: #64dcff;
+  font-size: 14px;
+  text-align: center;
+  margin: 8px 0 0 0;
+  font-weight: bold;
+  padding: 5px 15px;
+  background: rgba(100, 220, 255, 0.2);
+  border-radius: 8px;
+  border: 1px solid #64dcff;
+  display: inline-block;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
 @keyframes modeTitleGlow {
   0%, 100% {
     text-shadow: 0 0 15px #ffcc33;
@@ -372,8 +840,8 @@ body {
 }
 
 .chat-container.vidya-mode {
-  border-color: #9370db;
-  background: rgba(147, 112, 219, 0.2);
+  border-color: #ffd966;
+  background: rgba(255, 215, 102, 0.1);
 }
 
 /* ========== ARCHERY MODE UI ========== */
@@ -703,8 +1171,8 @@ body {
 }
 
 .vidya-shrine {
-  background: rgba(147, 112, 219, 0.2);
-  border: 3px solid #9370db;
+  background: rgba(255, 215, 102, 0.15);
+  border: 3px solid #ffd966;
   border-radius: 15px;
   padding: 30px;
   text-align: center;
@@ -925,47 +1393,222 @@ body {
 }
 
 .mic-btn {
-  font-size: 24px;
-  padding: 10px 15px !important;
-  background: linear-gradient(135deg, #ffcc33 0%, #ff9900 100%) !important;
-  border: 2px solid #ffd966 !important;
-  border-radius: 50% !important;
+  font-size: 20px;
+  padding: 12px 16px !important;
+  height: 48px !important;
+  width: 48px !important;
+  min-width: 48px !important;
   cursor: pointer;
-  transition: all 0.3s ease;
-  height: 42px !important;
-  width: 42px !important;
+  border: none !important;
   vertical-align: middle;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(255, 204, 51, 0.4);
   position: relative;
-  color: #000 !important;
+  color: #fff !important;
+  font-weight: 600;
+  overflow: visible;
+  perspective: 1000px;
+  background: radial-gradient(circle at 30% 30%, #FFE44D 0%, #FFD700 30%, #FFA500 70%, #FF9500 100%) !important;
+  border-radius: 8px !important;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+  box-shadow: 
+    0 0 30px rgba(255, 215, 0, 0.9),
+    0 0 60px rgba(255, 165, 0, 0.7),
+    inset 0 0 30px rgba(255, 255, 255, 0.3),
+    inset -5px -5px 20px rgba(139, 69, 19, 0.2),
+    0 15px 40px rgba(255, 140, 0, 0.4) !important;
+  animation: 
+    micQuantumMorph 4s ease-in-out infinite,
+    micRotateGradient 8s linear infinite,
+    micWaveMotion 2s ease-in-out infinite;
+}
+
+.mic-btn::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 8px;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+  background: conic-gradient(from 0deg, #FFD700, #FFA500, #FF9500, #FFD700);
+  animation: micBorderRotate 3s linear infinite;
+  z-index: -1;
+  opacity: 0.8;
+}
+
+.mic-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.2) 25%, 
+    rgba(255, 255, 255, 0.1) 50%, 
+    rgba(255, 255, 255, 0.2) 75%, 
+    transparent 100%);
+  animation: micParticleShine 1.5s infinite;
+  pointer-events: none;
 }
 
 .mic-btn:hover {
-  background: linear-gradient(135deg, #ffd966 0%, #ffcc33 100%) !important;
-  box-shadow: 0 6px 25px rgba(255, 153, 0, 0.8) !important;
-  transform: translateY(-2px);
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transform: rotateX(15deg) rotateY(-15deg) scale(1.15) translateY(-6px);
+  clip-path: polygon(15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%, 0% 15%);
+  box-shadow: 
+    0 0 50px rgba(255, 215, 0, 1),
+    0 0 100px rgba(255, 165, 0, 0.9),
+    inset 0 0 40px rgba(255, 255, 255, 0.4),
+    inset -5px -5px 30px rgba(139, 69, 19, 0.3),
+    0 20px 60px rgba(255, 140, 0, 0.6) !important;
+  filter: brightness(1.3) drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
 }
 
 .mic-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(255, 153, 0, 0.6) !important;
+  transform: rotateX(5deg) rotateY(-5deg) scale(0.95) translateY(-2px);
+  box-shadow: 
+    0 0 20px rgba(255, 215, 0, 0.7),
+    0 0 40px rgba(255, 165, 0, 0.4),
+    inset 0 0 25px rgba(255, 255, 255, 0.2),
+    0 8px 20px rgba(255, 140, 0, 0.3) !important;
 }
 
 .mic-btn.listening {
-  background: linear-gradient(135deg, #ff9900 0%, #ffcc33 100%) !important;
-  box-shadow: 0 0 20px rgba(255, 153, 0, 1), 0 0 40px rgba(255, 153, 0, 0.6) !important;
-  animation: micPulseGold 0.6s ease-in-out infinite;
-  text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  background: radial-gradient(circle at 40% 40%, #FF6B35 0%, #FF8C00 30%, #FF5722 60%, #E64A19 100%) !important;
+  clip-path: polygon(0% 30%, 30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%);
+  animation: 
+    micQuantumMorph 1.5s ease-in-out infinite,
+    micRotateGradient 4s linear infinite,
+    micWaveMotion 1s ease-in-out infinite,
+    micListeningWaveExplode 0.8s ease-out infinite,
+    micIntenseFlash 0.5s ease-in-out infinite;
+}
+
+.mic-btn.listening:hover {
+  transform: rotateX(20deg) rotateY(-20deg) scale(1.25) translateY(-10px) rotateZ(-10deg);
+  clip-path: polygon(10% 10%, 40% 0%, 60% 0%, 90% 10%, 100% 40%, 100% 60%, 90% 90%, 60% 100%, 40% 100%, 10% 90%, 0% 60%, 0% 40%);
+  box-shadow: 
+    0 0 70px rgba(255, 140, 0, 1),
+    0 0 140px rgba(255, 107, 0, 0.9),
+    inset 0 0 50px rgba(255, 255, 255, 0.5),
+    inset -8px -8px 40px rgba(139, 69, 19, 0.4),
+    0 30px 80px rgba(255, 107, 0, 0.8) !important;
+  filter: brightness(1.5) drop-shadow(0 0 40px rgba(255, 165, 0, 1));
+}
+
+@keyframes micQuantumMorph {
+  0% {
+    border-radius: 8px;
+    filter: saturate(1);
+  }
+  25% {
+    border-radius: 50%;
+    filter: saturate(1.2) hue-rotate(10deg);
+  }
+  50% {
+    border-radius: 20px;
+    filter: saturate(1) hue-rotate(20deg);
+  }
+  75% {
+    border-radius: 10px;
+    filter: saturate(1.1) hue-rotate(10deg);
+  }
+  100% {
+    border-radius: 8px;
+    filter: saturate(1) hue-rotate(0deg);
+  }
+}
+
+@keyframes micRotateGradient {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(30deg);
+  }
+  100% {
+    filter: hue-rotate(0deg);
+  }
+}
+
+@keyframes micWaveMotion {
+  0%, 100% {
+    letter-spacing: 0px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+  }
+  50% {
+    letter-spacing: 1px;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+  }
+}
+
+@keyframes micBorderRotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes micParticleShine {
+  0% {
+    transform: translateX(-100%) skewX(-20deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes micListeningWaveExplode {
+  0% {
+    box-shadow: 
+      0 0 10px rgba(255, 140, 0, 0.8),
+      0 0 20px rgba(255, 165, 0, 0.6);
+  }
+  50% {
+    box-shadow: 
+      0 0 40px rgba(255, 107, 0, 1),
+      0 0 80px rgba(255, 140, 0, 0.8),
+      0 0 120px rgba(255, 165, 0, 0.5);
+  }
+  100% {
+    box-shadow: 
+      0 0 10px rgba(255, 140, 0, 0.8),
+      0 0 20px rgba(255, 165, 0, 0.6);
+  }
+}
+
+@keyframes micIntenseFlash {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.4) saturate(1.5);
+  }
 }
 
 .mic-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
-  box-shadow: 0 4px 15px rgba(255, 153, 0, 0.2) !important;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.1) !important;
+  transform: none !important;
+  animation: none !important;
+  filter: grayscale(0.8) brightness(0.7);
+}
+
+.mic-btn:disabled:hover {
+  transform: none !important;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.1) !important;
+  filter: grayscale(0.8) brightness(0.7);
 }
 
 @keyframes micPulseGold {
@@ -979,12 +1622,6 @@ body {
   }
 }
 
-.mic-btn.listening {
-  background: linear-gradient(45deg, #ff4444, #cc0000) !important;
-  border-color: #ff6666 !important;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
 @keyframes pulse {
   0%, 100% {
     box-shadow: 0 0 10px rgba(255, 68, 68, 0.6);
@@ -994,11 +1631,6 @@ body {
     box-shadow: 0 0 30px rgba(255, 68, 68, 1);
     transform: scale(1.1);
   }
-}
-
-.mic-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .lang {
@@ -1196,6 +1828,175 @@ footer {
   to {
     opacity: 1;
   }
+}
+
+/* Student Selector Modal */
+.student-selector-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2001;
+  animation: fadeIn 0.5s ease;
+}
+
+.student-selector-content {
+  background: linear-gradient(135deg, #2a1500, #1a0f00);
+  border: 4px solid #ffaa00;
+  border-radius: 20px;  
+  padding: 40px;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(255, 170, 0, 0.6);
+}
+
+.student-selector-content h2 {
+  color: #ffd966;
+  font-size: 32px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 25px #ffcc33;
+}
+
+.selector-subtitle {
+  color: #ffaa00;
+  font-size: 18px;
+  margin-bottom: 30px;
+  font-style: italic;
+}
+
+.students-list {
+  margin-bottom: 35px;
+  text-align: left;
+}
+
+.list-title {
+  color: #ffd966;
+  font-size: 18px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.student-btn {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, rgba(255, 170, 0, 0.15), rgba(255, 100, 0, 0.1));
+  border: 2px solid rgba(255, 170, 0, 0.4);
+  border-radius: 12px;
+  color: #ffdd99;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  flex: 1;
+  margin-right: 8px;
+}
+
+.student-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 170, 0, 0.35), rgba(255, 100, 0, 0.25));
+  border-color: #ffaa00;
+  box-shadow: 0 0 20px rgba(255, 170, 0, 0.4);
+  transform: translateX(5px);
+}
+
+.student-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.delete-student-btn {
+  padding: 12px 8px;
+  background: linear-gradient(135deg, rgba(220, 20, 60, 0.3), rgba(178, 34, 52, 0.3));
+  border: 2px solid rgba(220, 20, 60, 0.5);
+  border-radius: 8px;
+  color: #ff6b6b;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.delete-student-btn:hover {
+  background: linear-gradient(135deg, rgba(220, 20, 60, 0.6), rgba(178, 34, 52, 0.6));
+  border-color: #ff3333;
+  box-shadow: 0 0 15px rgba(220, 20, 60, 0.5);
+  transform: scale(1.1);
+}
+
+.student-name {
+  font-weight: bold;
+  color: #fff;
+  flex-grow: 1;
+  text-align: left;
+}
+
+.student-level,
+.student-respect {
+  color: #ffaa00;
+  font-size: 14px;
+  margin-left: 15px;
+}
+
+.new-student-section {
+  border-top: 2px solid rgba(255, 170, 0, 0.3);
+  padding-top: 30px;
+  margin-top: 30px;
+}
+
+.section-title {
+  color: #ffd966;
+  font-size: 18px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.new-student-input {
+  width: 100%;
+  padding: 15px;
+  font-size: 18px;
+  border: 2px solid #ffd966;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  margin-bottom: 15px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.new-student-input:focus {
+  border-color: #ffcc33;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.create-student-btn {
+  padding: 15px 40px;
+  font-size: 18px;
+  font-weight: bold;
+  background: linear-gradient(45deg, #ffbb00, #ff8800);
+  border: none;
+  border-radius: 10px;
+  color: black;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.create-student-btn:hover {
+  background: linear-gradient(45deg, #ffd966, #ffaa00);
+  box-shadow: 0 0 30px rgba(255, 170, 0, 0.6);
+  transform: translateY(-2px);
 }
 
 /* Initiation Modal */
@@ -2605,6 +3406,29 @@ footer {
 
 .astra-cards-container::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 217, 102, 0.6);
+}
+
+/* No Results Message */
+.astra-no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #a89968;
+  text-align: center;
+}
+
+.astra-no-results p {
+  font-size: 14px;
+  margin: 0;
+  color: #d4a574;
+}
+
+.astra-no-results small {
+  font-size: 12px;
+  color: #8b6f47;
+  margin-top: 5px;
 }
 
 /* Individual Astra Card */
@@ -5239,4 +6063,594 @@ footer {
   to {
     opacity: 1;
   }
+}
+
+/* ============================================ */
+/* VIDYA TRAINING UI - SPLIT SCREEN DESIGN */
+/* ============================================ */
+
+.vidya-split-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+  gap: 2px;
+  overflow: hidden;
+}
+
+/* ==================== LEFT PANEL ==================== */
+
+.vidya-left-panel {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-right: 2px solid rgba(255, 217, 102, 0.2);
+  height: 100%;
+  overflow: hidden;
+}
+
+.vidya-training-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(90deg, rgba(99, 50, 200, 0.15), rgba(220, 38, 38, 0.15));
+  border-bottom: 2px solid rgba(255, 217, 102, 0.3);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.mode-icon {
+  font-size: 2.5rem;
+  animation: pulse-icon 2s ease-in-out infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.header-text h2 {
+  margin: 0;
+  color: #ffd966;
+  font-size: 1.5rem;
+  text-shadow: 0 2px 8px rgba(255, 217, 102, 0.3);
+}
+
+.header-text p {
+  margin: 0;
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+.btn-exit-vidya {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #ff6b6b, #dc2626);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-exit-vidya:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* PROGRESS BARS */
+
+.progress-section {
+  padding: 15px 20px;
+  background: rgba(100, 50, 200, 0.1);
+  border-bottom: 1px solid rgba(100, 50, 200, 0.2);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.progress-title {
+  color: #ffd966;
+  font-weight: bold;
+}
+
+.progress-count {
+  color: #aaa;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(100, 50, 200, 0.3);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6432c8, #8b5cf6);
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(100, 50, 200, 0.5);
+}
+
+.test-header-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 15px 20px;
+  background: rgba(220, 38, 38, 0.1);
+  border-bottom: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.stat-label {
+  color: #aaa;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.stat-value {
+  color: #ff6b6b;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.stat-value small {
+  font-size: 0.8rem;
+  color: #888;
+  margin-left: 3px;
+}
+
+/* MAIN CONTENT AREA */
+
+.vidya-content-main {
+  flex: 1;
+  padding: 25px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.lesson-display,
+.question-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lesson-content,
+.question-content {
+  flex: 1;
+  background: linear-gradient(135deg, rgba(100, 50, 200, 0.1), rgba(150, 100, 250, 0.05));
+  border: 2px solid rgba(100, 50, 200, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  color: #e0e0e0;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  overflow-y: auto;
+  box-shadow: inset 0 4px 15px rgba(100, 50, 200, 0.1);
+}
+
+.question-content {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(239, 68, 68, 0.05));
+}
+
+.lesson-text-animate,
+.question-text-animate {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lesson-placeholder,
+.question-placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+  color: #888;
+  gap: 10px;
+}
+
+.lesson-placeholder p:first-child,
+.question-placeholder p:first-child {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.lesson-placeholder p:last-child,
+.question-placeholder p:last-child {
+  margin: 0;
+  color: #666;
+}
+
+.question-prompt {
+  color: #ff6b6b;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
+}
+
+/* CONTENT FOOTER */
+
+.vidya-content-footer {
+  padding: 10px 25px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-action {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+
+.btn-next-question {
+  background: linear-gradient(135deg, #1e90ff, #87ceeb);
+}
+
+.btn-action:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}
+
+.btn-next-question:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(30, 144, 255, 0.4);
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 1rem;
+}
+
+/* ==================== RIGHT PANEL ==================== */
+
+.vidya-right-panel {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+  border-left: 2px solid rgba(255, 217, 102, 0.2);
+  height: 100%;
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 15px 20px;
+  background: linear-gradient(90deg, rgba(30, 144, 255, 0.15), rgba(139, 206, 246, 0.15));
+  border-bottom: 2px solid rgba(30, 144, 255, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-header h3 {
+  margin: 0;
+  color: #87ceeb;
+  font-size: 1.1rem;
+}
+
+.mode-switch-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.mode-toggle {
+  padding: 6px 12px;
+  background: rgba(100, 100, 100, 0.3);
+  color: #aaa;
+  border: 1px solid rgba(100, 100, 100, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.mode-toggle.active {
+  background: linear-gradient(135deg, #6432c8, #8b5cf6);
+  color: white;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 10px rgba(99, 50, 200, 0.3);
+}
+
+.mode-toggle:hover {
+  transform: translateY(-1px);
+}
+
+/* CHAT HISTORY */
+
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #666;
+  text-align: center;
+}
+
+.chat-message {
+  display: flex;
+  gap: 10px;
+  animation: slideInChat 0.4s ease-out;
+  margin-bottom: 5px;
+}
+
+@keyframes slideInChat {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.chat-message.guru .message-avatar {
+  color: #ffd966;
+}
+
+.chat-message.student .message-avatar {
+  color: #87ceeb;
+  margin-left: auto;
+  order: 2;
+}
+
+.message-avatar {
+  font-size: 1.8rem;
+  min-width: 30px;
+  text-align: center;
+  padding-top: 2px;
+}
+
+.message-content {
+  max-width: 70%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(100, 100, 100, 0.2);
+  border-radius: 10px;
+  padding: 10px 13px;
+  word-wrap: break-word;
+}
+
+.chat-message.student .message-content {
+  background: rgba(30, 144, 255, 0.15);
+  border-color: rgba(30, 144, 255, 0.3);
+  order: 1;
+}
+
+.message-content p {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.message-time {
+  display: block;
+  color: #666;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.loading-message .message-content {
+  background: rgba(100, 50, 200, 0.15);
+  border-color: rgba(100, 50, 200, 0.3);
+}
+
+.loading-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  height: 12px;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6432c8;
+  animation: bounce 1.4s infinite;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-8px); }
+}
+
+/* QUICK ACTIONS */
+
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(100, 100, 100, 0.2);
+  border-bottom: 1px solid rgba(100, 100, 100, 0.2);
+}
+
+.quick-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(100, 50, 200, 0.3), rgba(100, 50, 200, 0.15));
+  color: #aaa;
+  border: 1px solid rgba(100, 50, 200, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.quick-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(100, 50, 200, 0.5), rgba(100, 50, 200, 0.3));
+  color: #e0e0e0;
+  border-color: rgba(100, 50, 200, 0.5);
+}
+
+.quick-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* INPUT AREA */
+
+.chat-input-area {
+  padding: 15px;
+  background: linear-gradient(180deg, rgba(74, 32, 0, 0.3), rgba(58, 32, 0, 0.4));
+  border-top: 2px solid #ffd966;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-input {
+  padding: 12px 15px;
+  background: rgba(58, 32, 0, 0.6);
+  border: 2px solid #ffd966;
+  border-radius: 8px;
+  color: #ffd966;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  resize: none;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: #ffed4e;
+  background: rgba(74, 40, 0, 0.7);
+  box-shadow: 0 0 12px rgba(255, 217, 102, 0.4);
+}
+
+.chat-input::placeholder {
+  color: #666;
+}
+
+.input-button-group {
+  display: flex;
+}
+
+.btn-send {
+  flex: 1;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ffd966, #ffed4e);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-send:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 217, 102, 0.4);
+}
+
+.btn-send.btn-submit {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: white;
+}
+
+.btn-send.btn-submit:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* SCROLLBAR STYLING */
+
+.vidya-content-main::-webkit-scrollbar,
+.chat-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.vidya-content-main::-webkit-scrollbar-track,
+.chat-history::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.vidya-content-main::-webkit-scrollbar-thumb,
+.chat-history::-webkit-scrollbar-thumb {
+  background: rgba(100, 50, 200, 0.4);
+  border-radius: 3px;
+}
+
+.vidya-content-main::-webkit-scrollbar-thumb:hover,
+.chat-history::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 50, 200, 0.6);
 }
