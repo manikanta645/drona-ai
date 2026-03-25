@@ -7,3 +7,12 @@ numpy
 transformers
 torch
 indic-transliteration
+googletrans==4.0.0rc1
+opencv-python
+mediapipe
+chromadb
+pyttsx3
+SpeechRecognition
+lang-detect
+librosa
+sounddevice

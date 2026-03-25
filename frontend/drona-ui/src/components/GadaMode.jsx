@@ -1,117 +1,198 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './GadaMode.css';
-import dronacharya from '../assets/dronacharya.jpg';
+import dronaImage from '../assets/dronacharya.jpg';
 
-const GadaMode = ({ studentName, studentLevel, respectMeter, askDrona, chatHistory = [], isLoading = false }) => {
-  const scrollContainerRef = useRef(null);
-  const [selectedStrike, setSelectedStrike] = useState('power');
-  const [strikesDelivered, setStrikesDelivered] = useState(0);
-  const [damageOutput, setDamageOutput] = useState(0);
-  const [techniques] = useState([
-    { id: 'power', name: 'Power Strike', emoji: '💪', desc: 'Maximum force blow' },
-    { id: 'spinning', name: 'Spinning Attack', emoji: '🌪️', desc: 'Rotating momentum' },
-    { id: 'defense', name: 'Defensive Block', emoji: '🛡️', desc: 'Shield with mace' },
-    { id: 'overhead', name: 'Overhead Smash', emoji: '⬆️', desc: 'High-impact strike' }
-  ]);
+const GadaMode = ({ 
+  studentName, 
+  studentLevel, 
+  respectMeter = 50,
+  studentProfile = null,
+  onRespectMeterChange = () => {},
+  onLessonComplete = () => {}
+}) => {
+  const [phase, setPhase] = useState('select');
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [allLessons, setAllLessons] = useState([]);
+  const [completedLessons, setCompletedLessons] = useState(studentProfile?.lessons_completed || []);
+  const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+  const [performanceScore, setPerformanceScore] = useState(null);
+  const [guruFeedback, setGuruFeedback] = useState('');
+  const [lessonPassed, setLessonPassed] = useState(false);
+  const [attemptNumber, setAttemptNumber] = useState(1);
 
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      setTimeout(() => {
-        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-      }, 100);
+    loadLessons();
+  }, []);
+
+  const loadLessons = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://127.0.0.1:8000/api/vidya/lessons/gada');
+      const data = await response.json();
+      if (data.lessons) setAllLessons(data.lessons);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [chatHistory]);
-
-  const handleDeliverStrike = () => {
-    const newDamage = Math.min(100, damageOutput + Math.random() * 25);
-    setStrikesDelivered(s => s + 1);
-    setDamageOutput(newDamage);
-    askDrona(`I delivered a ${techniques.find(t => t.id === selectedStrike).name}. Impact: ${newDamage.toFixed(0)}%. Evaluate my form.`);
   };
 
-  const handleTechniqueChange = (technique) => {
-    setSelectedStrike(technique);
-    askDrona(`I am switching to ${techniques.find(t => t.id === technique).name}. Guide my stance.`);
+  const getAvailable = () => allLessons.filter(l => !completedLessons.includes(l.lesson_id));
+
+  const handleSelectLesson = async (lesson) => {
+    setSelectedLesson(lesson);
+    setPhase('explain');
+    await startSession(lesson.lesson_id);
   };
 
-  return (
-    <div className="gada-container">
-      {/* Header */}
-      <div className="gada-header">
-        <h1 className="gada-title">🔨 Gada Vidya - Mace Mastery</h1>
-        <p className="gada-subtitle">Master the art of the mighty mace and crushing strikes</p>
-      </div>
+  const startSession = async (lessonId) => {
+    try {
+      setLoading(true);
+      let studentId = localStorage.getItem('studentId');
+      if (!studentId) {
+        studentId = studentName.replace(/\s+/g, '_').toLowerCase();
+        localStorage.setItem('studentId', studentId);
+      }
+      
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/vidya/start-session/${studentId}/gada/${lessonId}`,
+        { method: 'POST' }
+      );
+      
+      const data = await response.json();
+      if (data.session_id) {
+        setSessionId(data.session_id);
+        setSessionStartTime(new Date());
+        setAttemptNumber(1);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      <div className="gada-content">
-        {/* Left: Technique Selector */}
-        <div className="technique-panel">
-          <h2 className="panel-title">Strike Techniques</h2>
-          <div className="technique-grid">
-            {techniques.map((t) => (
-              <div
-                key={t.id}
-                className={`technique-card ${selectedStrike === t.id ? 'active' : ''}`}
-                onClick={() => handleTechniqueChange(t.id)}
-              >
-                <div className="technique-emoji">{t.emoji}</div>
-                <div className="technique-name">{t.name}</div>
-                <div className="technique-desc">{t.desc}</div>
-              </div>
-            ))}
-          </div>
+  const handleSubmitPractice = async () => {
+    try {
+      setLoading(true);
+      const timeTaken = (new Date() - sessionStartTime) / 1000;
+      const studentId = localStorage.getItem('studentId') || studentName.replace(/\s+/g, '_').toLowerCase();
+      
+      const response = await fetch(`http://127.0.0.1:8000/api/vidya/submit-practice/${sessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: studentId,
+          vidya_id: 'gada',
+          lesson_id: selectedLesson.lesson_id,
+          text_answer: 'Mace practice submitted',
+          time_taken: timeTaken,
+          attempt_number: attemptNumber
+        })
+      });
+      
+      const result = await response.json();
+      if (result.performance_score !== undefined) {
+        setPerformanceScore(result.performance_score);
+        setGuruFeedback(result.feedback);
+        setLessonPassed(result.passed);
+        if (result.passed) {
+          onRespectMeterChange(Math.floor(result.performance_score / 20));
+        }
+        setPhase('feedback');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (phase === 'select') {
+    return (
+      <div className="gada-container">
+        <div className="gada-header">
+          <h1>🔨 Gada Vidya - Mace Mastery</h1>
+          <p>Level: {studentLevel} | Respect: {respectMeter} | Completed: {completedLessons.length}/{allLessons.length}</p>
         </div>
-
-        {/* Right: Chat/Feedback */}
-        <div className="feedback-panel">
-          <div className="feedback-header">
-            <img src={dronacharya} alt="Dronacharya" className="guru-image" />
-            <div className="guru-info">
-              <h3>Dronacharya's Guidance</h3>
-              <p className="student-name">Student: {studentName}</p>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="stats-row">
-            <div className="stat-box">
-              <span className="stat-label">Strikes Delivered</span>
-              <span className="stat-value">{strikesDelivered}</span>
-            </div>
-            <div className="stat-box">
-              <span className="stat-label">Impact Level</span>
-              <span className="stat-value">{damageOutput.toFixed(0)}%</span>
-            </div>
-          </div>
-
-          {/* Chat History */}
-          <div className="chat-container" ref={scrollContainerRef}>
-            {chatHistory.length === 0 ? (
-              <div className="empty-state">
-                <p>Begin your Gada training...</p>
-              </div>
-            ) : (
-              chatHistory.map((msg, idx) => (
-                <div key={idx} className={`chat-message ${msg.role}`}>
-                  <span className="message-role">{msg.role === 'guru' ? 'Guru: ' : 'You: '}</span>
-                  {msg.text}
+        <div className="lesson-selection">
+          {loading ? <p>Loading...</p> : getAvailable().length > 0 ? (
+            <div className="lessons-grid">
+              {getAvailable().map(l => (
+                <div key={l.lesson_id} className="lesson-card" onClick={() => handleSelectLesson(l)}>
+                  <h3>{l.name}</h3>
+                  <p>{l.description}</p>
                 </div>
-              ))
-            )}
-            {isLoading && <div className="loading-indicator">Guru is thinking...</div>}
-          </div>
+              ))}
+            </div>
+          ) : <p>All mace lessons completed!</p>}
+        </div>
+      </div>
+    );
+  }
 
-          {/* Action Button */}
-          <button 
-            onClick={handleDeliverStrike} 
-            className="action-button"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Awaiting Guidance...' : `Deliver ${techniques.find(t => t.id === selectedStrike).name}`}
+  if (phase === 'explain') {
+    return (
+      <div className="gada-container">
+        <div className="gada-header"><h1>{selectedLesson?.name}</h1></div>
+        <div className="explain-section">
+          <img src={dronaImage} alt="Guru" className="guru-avatar" />
+          <p>{selectedLesson?.explanation || 'Learn the mace technique'}</p>
+          <button onClick={() => setPhase('demonstrate')}>See Demonstration →</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'demonstrate') {
+    return (
+      <div className="gada-container">
+        <div className="gada-header"><h1>Demonstration</h1></div>
+        <div className="demonstrate-section">
+          <p>{selectedLesson?.demonstration || 'Demonstration video'}</p>
+          <button onClick={() => setPhase('practice')}>Practice Now →</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'practice') {
+    return (
+      <div className="gada-container">
+        <div className="gada-header"><h1>Practice: {selectedLesson?.name}</h1></div>
+        <div className="practice-section">
+          <p>Record your mace technique practice...</p>
+          <button onClick={handleSubmitPractice} disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Practice'}
           </button>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (phase === 'feedback') {
+    return (
+      <div className="gada-container">
+        <div className="gada-header"><h1>Result</h1></div>
+        <div className="feedback-section" style={{background: lessonPassed ? '#2ecc71' : '#e74c3c', color: 'white', padding: '20px', textAlign: 'center', borderRadius: '8px'}}>
+          <h2>Score: {performanceScore?.toFixed(0)}</h2>
+          <p>{guruFeedback}</p>
+          <button onClick={lessonPassed ? () => {
+            setCompletedLessons([...completedLessons, selectedLesson.lesson_id]);
+            onLessonComplete(selectedLesson.lesson_id);
+            setPhase('select');
+          } : () => {
+            setAttemptNumber(attemptNumber + 1);
+            setPhase('practice');
+          }} style={{marginTop: '15px', padding: '10px 20px'}}>
+            {lessonPassed ? 'Next Lesson →' : 'Retry'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default GadaMode;

@@ -1,134 +1,198 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ShastraMode.css';
-import dronacharya from '../assets/dronacharya.jpg';
+import dronaImage from '../assets/dronacharya.jpg';
 
-const ShastraMode = ({ studentName, studentLevel, respectMeter, askDrona, chatHistory = [], isLoading = false }) => {
-  const scrollContainerRef = useRef(null);
-  const [selectedText, setSelectedText] = useState('rigveda');
-  const [versesStudied, setVersesStudied] = useState(0);
+const ShastraMode = ({ 
+  studentName, 
+  studentLevel, 
+  respectMeter = 50,
+  studentProfile = null,
+  onRespectMeterChange = () => {},
+  onLessonComplete = () => {}
+}) => {
+  const [phase, setPhase] = useState('select');
+  const [allLessons, setAllLessons] = useState([]);
+  const [completedLessons, setCompletedLessons] = useState(studentProfile?.lessons_completed || []);
+  const [loading, setLoading] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+  const [performanceScore, setPerformanceScore] = useState(null);
+  const [guruFeedback, setGuruFeedback] = useState('');
+  const [lessonPassed, setLessonPassed] = useState(false);
+  const [attemptNumber, setAttemptNumber] = useState(1);
 
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      setTimeout(() => {
-        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-      }, 100);
+    loadLessons();
+  }, []);
+
+  const loadLessons = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://127.0.0.1:8000/api/vidya/lessons/shastra');
+      const data = await response.json();
+      if (data.lessons) setAllLessons(data.lessons);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [chatHistory]);
-
-  const texts = [
-    { id: 'rigveda', name: 'Rigveda', emoji: '📖', desc: 'Hymns & Mantras' },
-    { id: 'yajurveda', name: 'Yajurveda', emoji: '📜', desc: 'Ritual Knowledge' },
-    { id: 'samaveda', name: 'Samaveda', emoji: '🎵', desc: 'Chants & Melodies' },
-    { id: 'atharvaveda', name: 'Atharvaveda', emoji: '✨', desc: 'Mystical Knowledge' }
-  ];
-
-  const handleStudyVerse = () => {
-    setVersesStudied(v => v + 1);
-    const selectedVeda = texts.find(t => t.id === selectedText);
-    askDrona(`Teach me a verse from ${selectedVeda.name}. Explain its deeper meaning.`);
   };
 
-  return (
-    <div className="shastra-container">
-      <div className="shastra-header">
-        <h1 className="shastra-title">📚 Shastra Vidya - Ancient Texts & Wisdom</h1>
-        <p className="shastra-subtitle">Unlock the knowledge of the sacred scriptures</p>
-      </div>
+  const getAvailable = () => allLessons.filter(l => !completedLessons.includes(l.lesson_id));
 
-      <div className="shastra-content">
-        {/* Left: Text Selection */}
-        <div className="texts-panel">
-          <h2 className="panel-title">Sacred Texts</h2>
-          <div className="text-grid">
-            {texts.map((t) => (
-              <div
-                key={t.id}
-                className={`text-card ${selectedText === t.id ? 'active' : ''}`}
-                onClick={() => setSelectedText(t.id)}
-              >
-                <div className="text-emoji">{t.emoji}</div>
-                <div className="text-name">{t.name}</div>
-                <div className="text-desc">{t.desc}</div>
-              </div>
-            ))}
-          </div>
+  const handleSelectLesson = async (lesson) => {
+    setSelectedLesson(lesson);
+    setPhase('explain');
+    await startSession(lesson.lesson_id);
+  };
 
+  const startSession = async (lessonId) => {
+    try {
+      setLoading(true);
+      let studentId = localStorage.getItem('studentId');
+      if (!studentId) {
+        studentId = studentName.replace(/\s+/g, '_').toLowerCase();
+        localStorage.setItem('studentId', studentId);
+      }
+      
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/vidya/start-session/${studentId}/shastra/${lessonId}`,
+        { method: 'POST' }
+      );
+      
+      const data = await response.json();
+      if (data.session_id) {
+        setSessionId(data.session_id);
+        setSessionStartTime(new Date());
+        setAttemptNumber(1);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitPractice = async () => {
+    try {
+      setLoading(true);
+      const timeTaken = (new Date() - sessionStartTime) / 1000;
+      const studentId = localStorage.getItem('studentId') || studentName.replace(/\s+/g, '_').toLowerCase();
+      
+      const response = await fetch(`http://127.0.0.1:8000/api/vidya/submit-practice/${sessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: studentId,
+          vidya_id: 'shastra',
+          lesson_id: selectedLesson.lesson_id,
+          text_answer: 'Scripture study completed',
+          time_taken: timeTaken,
+          attempt_number: attemptNumber
+        })
+      });
+      
+      const result = await response.json();
+      if (result.performance_score !== undefined) {
+        setPerformanceScore(result.performance_score);
+        setGuruFeedback(result.feedback);
+        setLessonPassed(result.passed);
+        if (result.passed) {
+          onRespectMeterChange(Math.floor(result.performance_score / 20));
+        }
+        setPhase('feedback');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (phase === 'select') {
+    return (
+      <div className="shastra-container">
+        <div className="shastra-header">
+          <h1>📚 Shastra Vidya - Sacred Texts</h1>
+          <p>Level: {studentLevel} | Respect: {respectMeter} | Completed: {completedLessons.length}/{allLessons.length}</p>
         </div>
-
-        {/* Middle: Guru & Texts Display */}
-        <div className="library-center">
-          <div className={`scholar-avatar ${isLoading ? 'teaching' : ''}`}>
-            <img src={dronacharya} alt="Āchārya Droṇāchārya" className="avatar-image" />
-            {isLoading && <div className="wisdom-aura"></div>}
-          </div>
-          <p className="scholar-name">Vedic Scholar</p>
-
-          {/* Sacred Text Scroll */}
-          <div className="scroll-container">
-            <div className="scroll-header">
-              {texts.find(t => t.id === selectedText)?.emoji} {texts.find(t => t.id === selectedText)?.name}
-            </div>
-            <div className="verse-display" ref={scrollContainerRef}>
-              {chatHistory.slice(-5).map((msg, idx) => (
-                <div key={idx} className={`verse-msg ${msg.type}`}>
-                  <p>{msg.text}</p>
+        <div className="lesson-selection">
+          {loading ? <p>Loading...</p> : getAvailable().length > 0 ? (
+            <div className="lessons-grid">
+              {getAvailable().map(l => (
+                <div key={l.lesson_id} className="lesson-card" onClick={() => handleSelectLesson(l)}>
+                  <h3>{l.name}</h3>
+                  <p>{l.description}</p>
                 </div>
               ))}
-              {isLoading && (
-                <div className="loading-verse">
-                  <div className="verse-loader">ॐ</div>
-                  <p>Reflecting on sacred knowledge...</p>
-                </div>
-              )}
             </div>
-          </div>
-        </div>
-
-        {/* Right: Study Controls */}
-        <div className="study-controls">
-          <div className="current-text">
-            <h3>Current Text</h3>
-            <div className="text-display">
-              {texts.find(t => t.id === selectedText)?.emoji}
-            </div>
-            <p className="text-name-display">{texts.find(t => t.id === selectedText)?.name}</p>
-          </div>
-
-          <div className="study-box">
-            <h3>Study Verse</h3>
-            <button 
-              className="study-btn"
-              onClick={handleStudyVerse}
-              disabled={isLoading}
-            >
-              📚 Study Now
-            </button>
-            <p className="study-hint">Engage with sacred wisdom</p>
-          </div>
-
-          <div className="knowledge-paths">
-            <h3>Knowledge Paths</h3>
-            <div className="paths-list">
-              <div className="path">Reading</div>
-              <div className="path">Reflection</div>
-              <div className="path">Mastery</div>
-            </div>
-          </div>
-
-          <div className="progress-box">
-            <h3>Study Progress</h3>
-            <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ width: `${Math.min(100, versesStudied * 20)}%` }}
-              ></div>
-            </div>
-            <p className="progress-text">{Math.min(100, versesStudied * 20)}% Complete</p>
-          </div>
+          ) : <p>All scripture lessons completed!</p>}
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (phase === 'explain') {
+    return (
+      <div className="shastra-container">
+        <div className="shastra-header"><h1>{selectedLesson?.name}</h1></div>
+        <div className="explain-section">
+          <img src={dronaImage} alt="Guru" className="guru-avatar" />
+          <p>{selectedLesson?.explanation || 'Learn the sacred text'}</p>
+          <button onClick={() => setPhase('demonstrate')}>See Explanation →</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'demonstrate') {
+    return (
+      <div className="shastra-container">
+        <div className="shastra-header"><h1>Teaching</h1></div>
+        <div className="demonstrate-section">
+          <p>{selectedLesson?.demonstration || 'Teaching content'}</p>
+          <button onClick={() => setPhase('practice')}>Begin Study →</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'practice') {
+    return (
+      <div className="shastra-container">
+        <div className="shastra-header"><h1>Study: {selectedLesson?.name}</h1></div>
+        <div className="practice-section">
+          <p>Study and reflect on the sacred text...</p>
+          <button onClick={handleSubmitPractice} disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Study'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'feedback') {
+    return (
+      <div className="shastra-container">
+        <div className="shastra-header"><h1>Result</h1></div>
+        <div className="feedback-section" style={{background: lessonPassed ? '#2ecc71' : '#e74c3c', color: 'white', padding: '20px', textAlign: 'center', borderRadius: '8px'}}>
+          <h2>Score: {performanceScore?.toFixed(0)}</h2>
+          <p>{guruFeedback}</p>
+          <button onClick={lessonPassed ? () => {
+            setCompletedLessons([...completedLessons, selectedLesson.lesson_id]);
+            onLessonComplete(selectedLesson.lesson_id);
+            setPhase('select');
+          } : () => {
+            setAttemptNumber(attemptNumber + 1);
+            setPhase('practice');
+          }} style={{marginTop: '15px', padding: '10px 20px'}}>
+            {lessonPassed ? 'Next Lesson →' : 'Retry'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default ShastraMode;

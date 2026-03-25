@@ -13,6 +13,7 @@ import DharmaMode from "./components/DharmaMode";
 import YudhaMode from "./components/YudhaMode";
 import ShastraMode from "./components/ShastraMode";
 import GadaMode from "./components/GadaMode";
+import VidyaHub from "./components/VidyaHub";
 
 const API_URL = "http://127.0.0.1:8000/ask";
 
@@ -244,6 +245,14 @@ function App() {
   // Initialize app - load student if available, show selector otherwise
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    // 🎵 Ensure voices are loaded for text-to-speech
+    if (window.speechSynthesis) {
+      const loadVoices = () => window.speechSynthesis.getVoices();
+      loadVoices();
+      window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+      return () => window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
+    }
+    
     const currentStudent = studentMemory.getCurrentStudent();
     
     if (currentStudent) {
@@ -339,32 +348,13 @@ function App() {
   // 🎙️ Clean text for TTS - remove emojis, special chars, brackets, numbers
   const cleanTextForTTS = (text, lang) => {
     if (!text) return "";
-    
-    // Remove emojis
-    let cleaned = text.replace(/[\p{Emoji}]/gu, "");
-    
-    // Remove text in brackets [like this] and parentheses (like this) - but preserve content if it's part of the sentence
-    cleaned = cleaned.replace(/\[.*?\]/g, "");
-    cleaned = cleaned.replace(/\(.*?\)/g, "");
-    
-    // For Indian languages, preserve ALL Unicode characters including diacritics
-    if (lang === "en") {
-      // For English, remove numbers and special chars, keep only letters, spaces, punctuation
-      cleaned = cleaned.replace(/\d+/g, ""); // remove numbers
-      cleaned = cleaned.replace(/[_-]/g, " "); // replace _ and - with space
-      cleaned = cleaned.replace(/[^\w\s.!?,;:'"()]/g, ""); // keep only alphanumeric, spaces, and basic punctuation
-    } else {
-      // For Indian languages: preserve ALL Unicode letters, marks (diacritics), numbers within words, and punctuation
-      // Only remove problematic control characters, but keep all visible Unicode characters
-      cleaned = cleaned.replace(/[_-]/g, " "); // replace _ and - with space
-      // Keep all Unicode letters (including marks/diacritics), digits, spaces, and common punctuation
-      cleaned = cleaned.replace(/[^\p{L}\p{M}\p{N}\s.!?,;:'"()।॥]/gu, ""); 
-      // \p{L} = any letter, \p{M} = marks/diacritics, \p{N} = numbers (for words like "२" in Hindi)
-    }
-    
-    // Remove extra spaces but preserve single spaces between words
-    cleaned = cleaned.replace(/\s+/g, " ").trim();
-    
+    // ⚡ OPTIMIZED: Minimal regex operations for speed
+    let cleaned = text
+      .replace(/[\p{Emoji}]/gu, '')           // Remove emojis
+      .replace(/\[.*?\]/g, '')                // Remove [brackets]
+      .replace(/\(.*?\)/g, '')                // Remove (parentheses)
+      .replace(/\s+/g, ' ')                   // Collapse spaces
+      .trim();
     return cleaned;
   };
 
@@ -637,112 +627,42 @@ function App() {
     return voice;
   };
 
-  // 🎙️ Royal Guru Voice setup
+  // 🎙️ OPTIMIZED TEXT-TO-SPEECH - Fast & Fluent
   const speak = (text, lang) => {
-    if (!window.speechSynthesis) {
-      console.log("⚠️ Speech Synthesis not supported");
-      return;
-    }
+    if (!window.speechSynthesis || !text) return;
     
-    // Ensure lang is valid, fallback to detected language if needed
-    if (!lang || lang === "unknown") {
-      lang = detectLanguage(text) || "en";
-    }
-
-    // Clean text before speaking
+    lang = lang || detectLanguage(text) || "en";
     const cleanedText = cleanTextForTTS(text, lang);
-    if (!cleanedText.trim()) {
-      console.log("⚠️ No speakable text after cleaning");
-      return;
-    }
+    if (!cleanedText.trim()) return;
 
-    // Ensure voices are loaded before selecting voice
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length === 0) {
-      console.log("⚠️ Voices not loaded yet, waiting...");
-      setTimeout(() => speak(text, lang), 100);
-      return;
-    }
+    // Cancel any pending TTS first
+    window.speechSynthesis.cancel();
 
     const utter = new SpeechSynthesisUtterance(cleanedText);
-    const langCodeMap = {
-      hi: "hi-IN",
-      te: "te-IN",
-      ta: "ta-IN",
-      bn: "bn-IN",
-      ml: "ml-IN",
-      kn: "kn-IN",
-      gu: "gu-IN",
-      mr: "mr-IN",
-      pa: "pa-IN",
-      en: "en-IN",
-    };
-    const langCode = langCodeMap[lang] || "en-IN";
-    utter.lang = langCode;
+    
+    // ⚡ SIMPLE Language Code Mapping
+    const langMap = { hi: "hi-IN", te: "te-IN", ta: "ta-IN", bn: "bn-IN", ml: "ml-IN", kn: "kn-IN", gu: "gu-IN", mr: "mr-IN", pa: "pa-IN", en: "en-IN" };
+    utter.lang = langMap[lang] || "en-IN";
 
-    let bestVoice;
-    // For English, always use Telugu/Indian male voice
-    if (lang === "en") {
-      // Try to get Telugu voice first
-      bestVoice = voices.find(v => v.lang.toLowerCase() === "te-in" && isMaleVoice(v.name));
-      // If not found, fallback to any Indian male voice
-      if (!bestVoice) {
-        bestVoice = voices.find(v => v.lang.toLowerCase().includes("in") && isMaleVoice(v.name));
-      }
-      // If still not found, fallback to any Telugu voice
-      if (!bestVoice) {
-        bestVoice = voices.find(v => v.lang.toLowerCase() === "te-in");
-      }
-      // If still not found, fallback to any Indian voice
-      if (!bestVoice) {
-        bestVoice = voices.find(v => v.lang.toLowerCase().includes("in"));
-      }
-      // If still not found, fallback to any male English voice
-      if (!bestVoice) {
-        bestVoice = voices.find(v => v.lang.toLowerCase().startsWith("en") && isMaleVoice(v.name));
-      }
-      // If still not found, fallback to any English voice
-      if (!bestVoice) {
-        bestVoice = voices.find(v => v.lang.toLowerCase().startsWith("en"));
-      }
-    } else {
-      bestVoice = getBestVoiceForLang(lang);
+    // ⚡ FAST Voice Selection: Just use first available voice for the language
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      const targetLang = utter.lang;
+      const voice = voices.find(v => v.lang.toLowerCase() === targetLang.toLowerCase()) || voices[0];
+      utter.voice = voice;
     }
 
-    if (bestVoice) {
-      utter.voice = bestVoice;
-      if (bestVoice.lang && bestVoice.lang.toLowerCase().startsWith(langCode.split("-")[0].toLowerCase())) {
-        utter.lang = bestVoice.lang;
-      }
-      const isMale = isMaleVoice(bestVoice.name);
-      const voiceType = isMale ? "🕉️ MALE" : "⚠️ FEMALE";
-      console.log("🎙️ Text:", cleanedText.substring(0, 50) + "...");
-      console.log(`🎙️ ${voiceType} Voice Selected:`, bestVoice.name, "| Lang:", bestVoice.lang, "| Set Lang:", utter.lang);
-      if (lang === "en" && !isMale) {
-        console.error("❌❌❌ WARNING: ENGLISH VOICE IS FEMALE! Pitch adjustment will be applied but may still sound female.");
-      }
-    } else {
-      console.error("⚠️⚠️ No voice found for language:", lang, "| Using browser default (may be female!) with lang code:", utter.lang);
-      if (lang === "en") {
-        console.error("❌❌❌ CRITICAL: No English voice selected! Browser will use default (likely female).");
-      }
-    }
+    // ⚡ Set speaking parameters
+    utter.rate = 0.9;   // Slightly slower for clarity
+    utter.pitch = lang === "en" ? 0.8 : 1.0;
+    utter.volume = 1.0;
 
-    // Set voice parameters - Guru Dronacharya voice for all languages
-    if (lang === "en") {
-      utter.rate = 0.9;
-      utter.pitch = 0.8;
-      utter.volume = 1.0;
-      const voiceType = bestVoice ? (isMaleVoice(bestVoice.name) ? "MALE" : "FEMALE") : "UNKNOWN";
-      console.log(`🕉️ Guru Dronacharya voice settings - Voice: ${voiceType} | Rate: ${utter.rate} | Pitch: ${utter.pitch}`);
-    } else {
-      utter.rate = 0.9;
-      utter.pitch = 1.0;
-      utter.volume = 1.0;
+    // Speak!
+    try {
+      window.speechSynthesis.speak(utter);
+    } catch (err) {
+      console.log("TTS error:", err);
     }
-
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utter);
   };
 
   // 🎤 Speech Recognition (Voice Input)
@@ -966,35 +886,46 @@ function App() {
 
   // 🌅 Ask backend
   const askDrona = async (questionText = null) => {
-    const finalQuestion = questionText || question;
-    if (!finalQuestion.trim()) return;
-
-    if (currentMode === 'weapons' && !isAstraRelevant(finalQuestion)) {
-      setShowAstraLock(true);
-      const msg = { type: 'guru', text: 'Shishya, this is Astra Vidhya. Maintain your focus on astras alone.', timestamp: new Date().toLocaleTimeString() };
-      setChatHistory(prev => [...prev, msg]);
-      setTimeout(() => setShowAstraLock(false), 2000);
-      return;
-    }
-    
-    setLoading(true);
-    const lang = detectLanguage(finalQuestion);
-
-    // Add user message to chat
-    const userMessage = {
-      type: 'user',
-      text: finalQuestion,
-      timestamp: new Date().toLocaleTimeString()
-    };
-    setChatHistory(prev => [...prev, userMessage]);
-    
-    // If in story mode, also add to story history
-    if (currentMode === 'story') {
-      setStoryHistory(prev => [...prev, { role: 'shishya', text: finalQuestion }]);
-    }
-    setQuestion(""); // Clear input
-
     try {
+      // Safely convert to string and trim
+      let finalQuestion = '';
+      if (typeof questionText === 'string') {
+        finalQuestion = questionText.trim();
+      } else if (typeof question === 'string') {
+        finalQuestion = question.trim();
+      } else if (questionText && typeof questionText.toString === 'function') {
+        finalQuestion = questionText.toString().trim();
+      } else if (question && typeof question.toString === 'function') {
+        finalQuestion = question.toString().trim();
+      }
+      
+      if (!finalQuestion) return;
+
+      if (currentMode === 'weapons' && !isAstraRelevant(finalQuestion)) {
+        setShowAstraLock(true);
+        const msg = { type: 'guru', text: 'Shishya, this is Astra Vidhya. Maintain your focus on astras alone.', timestamp: new Date().toLocaleTimeString() };
+        setChatHistory(prev => [...prev, msg]);
+        setTimeout(() => setShowAstraLock(false), 2000);
+        return;
+      }
+      
+      setLoading(true);
+      const lang = detectLanguage(finalQuestion);
+
+      // Add user message to chat
+      const userMessage = {
+        type: 'user',
+        text: finalQuestion,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setChatHistory(prev => [...prev, userMessage]);
+      
+      // If in story mode, also add to story history
+      if (currentMode === 'story') {
+        setStoryHistory(prev => [...prev, { role: 'shishya', text: finalQuestion }]);
+      }
+      setQuestion(""); // Clear input
+
       // Check if student is asking about their name
       const questionLower = finalQuestion.toLowerCase();
       const nameKeywords = ['my name', 'what is my name', 'who am i', 'i am', 'my name is', 'what\'s my name', 'tell me my name'];
@@ -1074,8 +1005,13 @@ function App() {
         addAstraSegment(responseText);
       }
       
+      // 🔊 TEXT-TO-SPEECH FOR ALL MODES
+      // Always speak the guru response regardless of mode
       const speakLang = lang || "en";
-      speak(responseText, speakLang);
+      if (speak && responseText && responseText.trim()) {
+        console.log(`[TTS] Speaking in mode: ${currentMode}, lang: ${speakLang}`);
+        speak(responseText, speakLang);
+      }
     } catch (err) {
       const errorMessage = {
         type: 'error',
@@ -1264,7 +1200,7 @@ function App() {
                       </button>
                     </div>
                   );
-                })}}
+                })}
               </div>
             )}
             
@@ -1349,13 +1285,14 @@ function App() {
                   setShowVidyaSelector(false);
                   setVidyaMode(null);
                   setCurrentVidya('');
+                  setShowVidyaSelection(false);
                 } else {
-                  // Toggle on - show Learn/Test selection
+                  // Toggle on - show Learn/Test selection modal first
                   setCurrentMode('vidya');
                   setVidyaMode(null);
                   setCurrentVidya('');
-                  setShowVidyaSelector(true);
-                  setShowVidyaSelection(false);
+                  setShowVidyaSelector(false);
+                  setShowVidyaSelection(true);
                 }
               }}
               ref={vidyaBtnRef}
@@ -1368,162 +1305,153 @@ function App() {
         </div>
       )}
 
-      {isInitiated && currentMode === 'vidya' && !vidyaMode && showVidyaSelector && (
-        <div className="vidya-selection-modal">
-          <div className="vidya-modal-content">
-            <button 
-              className="back-btn-modal"
-              onClick={() => {
-                setShowVidyaSelector(false);
-                setCurrentMode('chat');
-              }}
-            >
-              ← Back
-            </button>
-            
-            <h2 className="vidya-modal-title">🕉️ Choose Your Path of Knowledge</h2>
-            <p className="vidya-modal-subtitle">How would you like to engage with the Vidyas?</p>
-            
-            <div className="vidya-mode-buttons">
+        {/* Learn/Test Selection Modal - First Choice */}
+        {isInitiated && showVidyaSelection && currentMode === 'vidya' && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 3000
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+              padding: '50px',
+              borderRadius: '15px',
+              textAlign: 'center',
+              color: '#fff',
+              border: '2px solid #ffd966',
+              maxWidth: '500px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+            }}>
+              <h2 style={{fontSize: '2rem', marginBottom: '30px', color: '#ffd966'}}>
+                🎓 Choose Your Path
+              </h2>
+              <p style={{marginBottom: '40px', fontSize: '1.1rem', color: '#d0d0d0'}}>
+                How would you like to engage with the Vidyas?
+              </p>
+              
               <button 
-                className="vidya-learn-btn"
                 onClick={() => {
                   setVidyaMode('learn');
-                  setShowVidyaSelection(true);
+                  setShowVidyaSelection(false);
+                  setShowVidyaSelector(true);
                 }}
+                style={{
+                  background: 'linear-gradient(135deg, #ffd966 0%, #ffed4e 100%)',
+                  border: 'none',
+                  color: '#1a1a2e',
+                  padding: '15px 40px',
+                  margin: '10px',
+                  borderRadius: '8px',
+                  fontSize: '1.1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(255,217,102,0.3)'
+                }}
+                onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+                onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
               >
-                <div className="mode-icon">📖</div>
-                <div className="mode-title">Learn Knowledge</div>
-                <div className="mode-description">Receive teachings from Dronacharya. Master each vidya through guided lessons.</div>
+                📚 Learn Vidya (Lesson by Lesson)
               </button>
               
               <button 
-                className="vidya-test-btn"
                 onClick={() => {
                   setVidyaMode('test');
-                  setShowVidyaSelection(true);
+                  setShowVidyaSelection(false);
+                  setShowVidyaSelector(true);
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  color: '#fff',
+                  padding: '15px 40px',
+                  margin: '10px',
+                  borderRadius: '8px',
+                  fontSize: '1.1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(102,126,234,0.3)'
+                }}
+                onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+                onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+              >
+                ❓ Test Vidya (Guru Tests You)
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setShowVidyaSelection(false);
+                  setCurrentMode('chat');
+                }}
+                style={{
+                  background: 'transparent',
+                  border: '2px solid #d0d0d0',
+                  color: '#d0d0d0',
+                  padding: '12px 30px',
+                  margin: '10px',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.borderColor = '#ffd966';
+                  e.target.style.color = '#ffd966';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.borderColor = '#d0d0d0';
+                  e.target.style.color = '#d0d0d0';
                 }}
               >
-                <div className="mode-icon">🎯</div>
-                <div className="mode-title">Test Knowledge</div>
-                <div className="mode-description">Challenge yourself! Guru tests your understanding through questions and scenarios.</div>
+                ✕ Cancel
               </button>
             </div>
           </div>
+        )}
+      {/* Original VidyaHub - for traditional vidya modes */}
+      {isInitiated && currentMode === 'vidya' && showVidyaSelector && (
+        <div className="vidya-mode-wrapper">
+          <VidyaHub 
+            studentName={studentName}
+            askDrona={(msg) => { setQuestion(msg); setTimeout(askDrona, 100); }}
+            isLoading={loading}
+            vidyaMode={vidyaMode}
+              speak={speak}
+              detectLanguage={detectLanguage}
+          />
+          <button 
+            className="vidya-close-btn"
+            onClick={() => {
+              setCurrentMode('chat');
+              setShowVidyaSelector(false);
+              setVidyaMode(null);
+              setCurrentVidya('');
+            }}
+            title="Return to Chat"
+          >
+            ✕
+          </button>
         </div>
       )}
 
-      {isInitiated && currentMode === 'vidya' && vidyaMode && showVidyaSelection && (
-        <div className="vidya-submodes-modal">
-          <div className="vidya-modal-header">
-            <button 
-              className="back-btn"
-              onClick={() => {
-                setVidyaMode(null);
-                setShowVidyaSelection(false);
-              }}
-            >
-              ← Back
-            </button>
-            <h2 className="vidya-modal-title-sub">
-              {vidyaMode === 'learn' ? '📖 Choose a Lesson' : '🎯 Choose a Test'}
-            </h2>
-          </div>
-          
-          <div className="vidya-submodes-grid">
-            <button 
-              className="vidya-submode-btn dhyana"
-              onClick={() => { 
-                setCurrentVidya('dhyana'); 
-                setShowVidyaSelection(false);
-              }}
-            >
-              <div className="submode-icon">🧘</div>
-              <div className="submode-name">Dhyana Vidya</div>
-              <div className="submode-subtitle">Meditation & Inner Peace</div>
-            </button>
-            
-            <button 
-              className="vidya-submode-btn khadga"
-              onClick={() => { 
-                setCurrentVidya('khadga'); 
-                setShowVidyaSelection(false);
-              }}
-            >
-              <div className="submode-icon">🗡️</div>
-              <div className="submode-name">Khadga Vidya</div>
-              <div className="submode-subtitle">Sword & Combat Skills</div>
-            </button>
-            
-            <button 
-              className="vidya-submode-btn dhanur"
-              onClick={() => { 
-                setCurrentVidya('dhanur'); 
-                setShowVidyaSelection(false);
-              }}
-            >
-              <div className="submode-icon">🏹</div>
-              <div className="submode-name">Dhanur Vidya</div>
-              <div className="submode-subtitle">Archery & Precision</div>
-            </button>
-            
-            <button 
-              className="vidya-submode-btn dharma"
-              onClick={() => { 
-                setCurrentVidya('dharma'); 
-                setShowVidyaSelection(false);
-              }}
-            >
-              <div className="submode-icon">⚖️</div>
-              <div className="submode-name">Dharma Vidya</div>
-              <div className="submode-subtitle">Righteousness & Ethics</div>
-            </button>
-            
-            <button 
-              className="vidya-submode-btn yudha"
-              onClick={() => { 
-                setCurrentVidya('yudha'); 
-                setShowVidyaSelection(false);
-              }}
-            >
-              <div className="submode-icon">⚔️</div>
-              <div className="submode-name">Yudha Vidya</div>
-              <div className="submode-subtitle">War Strategy & Tactics</div>
-            </button>
-            
-            <button 
-              className="vidya-submode-btn shastra"
-              onClick={() => { 
-                setCurrentVidya('shastra'); 
-                setShowVidyaSelection(false);
-              }}
-            >
-              <div className="submode-icon">📚</div>
-              <div className="submode-name">Shastra Vidya</div>
-              <div className="submode-subtitle">Ancient Texts & Wisdom</div>
-            </button>
-
-            <button 
-              className="vidya-submode-btn gada"
-              onClick={() => { 
-                setCurrentVidya('gada'); 
-                setShowVidyaSelection(false);
-              }}
-            >
-              <div className="submode-icon">💪</div>
-              <div className="submode-name">Gada Vidya</div>
-              <div className="submode-subtitle">Mace Warrior Training</div>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      <div className={`main-content ${isInitiated ? 'with-sidebar' : ''}`}>
+      {/* Main Content Area - Hidden when vidya selector is showing */}
+      <div
+        className={`main-content ${isInitiated ? 'with-sidebar' : ''}`}
+        style={currentMode === 'vidya' && showVidyaSelector ? { display: 'none' } : undefined}
+      >
 
       {/* Initiation Modal */}
       {showInitiation && (
-        <div className="initiation-modal">>
+        <div className="initiation-modal">
           <div className="initiation-content">
             <h2>🙏 Welcome to Dronacharya's Ashram, {studentName}</h2>
             <p className="initiation-text">
@@ -1564,17 +1492,11 @@ function App() {
         </p>
 
         {/* Mode-Specific Header */}
-        {isInitiated && currentMode !== 'chat' && (
+        {isInitiated && currentMode !== 'chat' && currentMode !== 'vidya' && (
           <div className="mode-header">
             {currentMode === 'story' && <h2 className="mode-title">📖 Itihasa - Stories from Mahabharata</h2>}
 
             {currentMode === 'weapons' && <h2 className="mode-title">🗡️ Astras - Secrets of Celestial Weapons</h2>}
-            {currentMode === 'vidya' && (
-              <div>
-                <h2 className="mode-title">🕉️ {currentVidya ? currentVidya.charAt(0).toUpperCase() + currentVidya.slice(1) + ' Vidya' : 'Ancient Vidya'}</h2>
-                {vidyaMode && <p className="vidya-mode-indicator">{vidyaMode === 'learn' ? '📖 Learning Mode' : '🎯 Testing Mode'}</p>}
-              </div>
-            )}
           </div>
         )}
 
@@ -1715,6 +1637,7 @@ function App() {
             language={detectLanguage("story")}
             speak={speak}
             askDrona={askDrona}
+            detectLanguage={detectLanguage}
             storyHistory={storyHistory}
             resetStoryHistory={resetStoryHistory}
             restartStory={restartStory}
@@ -2501,10 +2424,9 @@ function App() {
           <span>Multilingual AI · Ancient Knowledge · Modern Intelligence</span>
         </footer>
       </div>
-
-
-      </div>
     </div>
+    </div>
+
   );
 }
 

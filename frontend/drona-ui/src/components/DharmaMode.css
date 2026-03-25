@@ -11,6 +11,7 @@
   font-family: 'Georgia', 'Garamond', serif;
   color: #d7c4a8;
   position: relative;
+  padding-right: 40px;
 }
 
 .dharma-container::before {
@@ -68,6 +69,8 @@
   position: relative;
   z-index: 2;
   overflow: hidden;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 /* LEFT: PHILOSOPHY PANEL */

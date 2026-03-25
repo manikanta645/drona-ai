@@ -1,8 +1,23 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './IthihasaMode.css';
+import dronaImage from '../assets/dronacharya.jpg';
 
-const IthihasaMode = ({ studentName, studentLevel, respectMeter, language, speak, askDrona, storyHistory = [], resetStoryHistory, isLoading = false }) => {
+const IthihasaMode = ({ studentName, studentLevel, respectMeter, language, speak, detectLanguage }) => {
+  const [storyText, setStoryText] = useState(
+    "Shishya, sit close. Today I shall unfold the tales of old—the stories that shaped warriors and kings. Which tale calls to you? A warrior's journey? A battle? A hidden lesson?"
+  );
+  const [userInput, setUserInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [detectedLang, setDetectedLang] = useState('en');
+  const [storyHistory, setStoryHistory] = useState([
+    {
+      role: 'guru',
+      text: "Shishya, sit close. Today I shall unfold the tales of old—the stories that shaped warriors and kings. Which tale calls to you? A warrior's journey? A battle? A hidden lesson?",
+    },
+  ]);
+  const [currentStoryContext, setCurrentStoryContext] = useState('');
   const scrollContainerRef = useRef(null);
+  const inputRef = useRef(null);
 
   // Auto-scroll to bottom when new story content arrives
   useEffect(() => {
@@ -13,16 +28,96 @@ const IthihasaMode = ({ studentName, studentLevel, respectMeter, language, speak
     }
   }, [storyHistory]);
 
-  // Handle sending message to guru - uses parent's askDrona function
+  // Handle sending message to guru
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!userInput.trim()) return;
+
+    // Add user message to history
+    const userMessage = userInput.trim();
+    setStoryHistory((prev) => [
+      ...prev,
+      { role: 'shishya', text: userMessage },
+    ]);
+    setUserInput('');
+    setIsLoading(true);
+
+    // 🌐 DETECT LANGUAGE FROM USER'S INPUT
+    const detectedInputLang = detectLanguage ? detectLanguage(userMessage) : 'en';
+    setDetectedLang(detectedInputLang);
+
+    try {
+      const response = await fetch('http://localhost:8000/ask', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: userMessage,
+          lang: detectedInputLang,
+          student_name: studentName || 'Shishya',
+          student_level: studentLevel || 'Novice',
+          respect_meter: respectMeter || 50,
+          mode: 'story',
+          story_context: currentStoryContext,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch story');
+
+      const data = await response.json();
+      const guruResponse = data.answer || 'The guru falls silent, lost in thought...';
+
+      // Add guru response to history
+      setStoryHistory((prev) => [
+        ...prev,
+        { role: 'guru', text: guruResponse },
+      ]);
+
+      // Update story context for continuation
+      setCurrentStoryContext(guruResponse);
+      setStoryText(guruResponse);
+      
+      // 🔊 SPEAK IN THE DETECTED LANGUAGE
+      if (speak) {
+        speak(guruResponse, detectedInputLang);
+      }
+    } catch (error) {
+      console.error('Error fetching story:', error);
+      const errorMessage =
+        'Shishya, forgive me. The connection to the ancient library is broken. Please try again.';
+      setStoryHistory((prev) => [
+        ...prev,
+        { role: 'guru', text: errorMessage },
+      ]);
+    } finally {
+      setIsLoading(false);
+      inputRef.current?.focus();
+    }
+  };
+
+  // Handle Continue Story button
   const handleContinueStory = () => {
-    askDrona('Continue');
+    setUserInput('Continue');
+    const formEvent = {
+      preventDefault: () => {},
+    };
+    setTimeout(() => handleSendMessage(formEvent), 0);
   };
 
   // Handle Restart Story button
   const handleRestartStory = () => {
-    if (resetStoryHistory) {
-      resetStoryHistory();
-    }
+    setStoryText(
+      "Shishya, sit close. Today I shall unfold the tales of old—the stories that shaped warriors and kings. Which tale calls to you? A warrior's journey? A battle? A hidden lesson?"
+    );
+    setStoryHistory([
+      {
+        role: 'guru',
+        text: "Shishya, sit close. Today I shall unfold the tales of old—the stories that shaped warriors and kings. Which tale calls to you? A warrior's journey? A battle? A hidden lesson?",
+      },
+    ]);
+    setCurrentStoryContext('');
+    setUserInput('');
   };
 
   return (
@@ -38,7 +133,7 @@ const IthihasaMode = ({ studentName, studentLevel, respectMeter, language, speak
         <div className="guru-section">
           <div className={`guru-avatar ${isLoading ? 'speaking' : ''}`}>
             <div className="guru-placeholder">
-              🧔‍♂️
+              <img src={dronaImage} alt="Āchārya Droṇāchārya" className="guru-image" />
             </div>
             {isLoading && <div className="guru-aura"></div>}
           </div>
@@ -102,6 +197,33 @@ const IthihasaMode = ({ studentName, studentLevel, respectMeter, language, speak
             Restart Story
           </button>
         </div>
+
+        {/* Shishya Input Area */}
+        <form className="shishya-input-area" onSubmit={handleSendMessage}>
+          <div className="input-wrapper">
+            <input
+              ref={inputRef}
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder="Ask the Guru…"
+              className="stone-tablet-input"
+              disabled={isLoading}
+              maxLength={200}
+            />
+            <button
+              type="submit"
+              className="send-button"
+              disabled={isLoading || !userInput.trim()}
+              title="Send your question to the guru"
+            >
+              🕉️
+            </button>
+          </div>
+          <div className="character-count">
+            {userInput.length}/200
+          </div>
+        </form>
       </div>
     </div>
   );

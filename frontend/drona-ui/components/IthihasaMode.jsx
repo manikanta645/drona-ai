@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './IthihasaMode.css';
+import dronaImage from '../src/assets/dronacharya.jpg';
 
 const IthihasaMode = ({ studentName, studentLevel, respectMeter, language }) => {
   const [storyText, setStoryText] = useState(
@@ -122,7 +123,7 @@ const IthihasaMode = ({ studentName, studentLevel, respectMeter, language }) => 
         <div className="guru-section">
           <div className={`guru-avatar ${isLoading ? 'speaking' : ''}`}>
             <div className="guru-placeholder">
-              🧔‍♂️
+              <img src={dronaImage} alt="Āchārya Droṇāchārya" className="guru-image" />
             </div>
             {isLoading && <div className="guru-aura"></div>}
           </div>

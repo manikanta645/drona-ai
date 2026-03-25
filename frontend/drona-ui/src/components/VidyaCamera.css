@@ -1,0 +1,484 @@
+/* ============================================================================
+   VIDYA CAMERA - Real-time Form Analysis
+   ========================================================================== */
+
+.vidya-camera-container {
+  width: 100%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.camera-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  align-items: stretch;
+}
+
+/* ============================================================================
+   VIDEO SECTION
+   ========================================================================== */
+
+.video-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 217, 102, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.video-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Analysis Overlay on Video */
+.analysis-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.score-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 217, 102, 0.95);
+  color: #1a1a2e;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.score-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.score-value.excellent {
+  color: #10b981;
+}
+
+.score-value.good {
+  color: #f59e0b;
+}
+
+/* Analyzing Indicator */
+.analyzing-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  backdrop-filter: blur(3px);
+  z-index: 10;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(255, 217, 102, 0.2);
+  border-top: 3px solid #ffd966;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.analyzing-indicator p {
+  color: #ffd966;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Camera Controls */
+.camera-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.capture-btn {
+  background: linear-gradient(135deg, #ffd966 0%, #ffed4e 100%);
+  border: none;
+  color: #1a1a2e;
+  padding: 14px 30px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 217, 102, 0.3);
+  min-width: 200px;
+}
+
+.capture-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 217, 102, 0.4);
+}
+
+.capture-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   FEEDBACK SECTION
+   ========================================================================== */
+
+.feedback-section {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 217, 102, 0.05);
+  border: 2px solid rgba(255, 217, 102, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.feedback-section::-webkit-scrollbar {
+  width: 8px;
+}
+
+.feedback-section::-webkit-scrollbar-track {
+  background: rgba(255, 217, 102, 0.1);
+  border-radius: 4px;
+}
+
+.feedback-section::-webkit-scrollbar-thumb {
+  background: rgba(255, 217, 102, 0.3);
+  border-radius: 4px;
+}
+
+.feedback-section::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 217, 102, 0.5);
+}
+
+/* Empty State */
+.feedback-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.empty-state {
+  text-align: center;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  color: #ffd966;
+  margin: 0 0 10px 0;
+}
+
+.empty-state p {
+  color: #b0b0b0;
+  margin: 5px 0;
+  font-size: 0.95rem;
+}
+
+.camera-hint {
+  color: #888;
+  font-style: italic;
+  font-size: 0.85rem !important;
+}
+
+/* Analysis Feedback */
+.analysis-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 217, 102, 0.2);
+}
+
+.feedback-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #ffd966;
+}
+
+.score-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 217, 102, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.score-indicator.excellent {
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.score-indicator.good {
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Positives Box */
+.positives-box {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 10px;
+  padding: 12px 15px;
+}
+
+.positives-box h4 {
+  color: #10b981;
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.positives-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.positives-box li {
+  color: #d0d0d0;
+  padding-left: 20px;
+  margin: 6px 0;
+  position: relative;
+  font-size: 0.9rem;
+}
+
+.positives-box li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #10b981;
+  font-weight: 700;
+}
+
+/* Feedback Message */
+.feedback-message {
+  background: rgba(255, 217, 102, 0.1);
+  border-left: 3px solid #ffd966;
+  padding: 12px 15px;
+  border-radius: 8px;
+}
+
+.guru-voice {
+  margin: 0;
+  color: #d0d0d0;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.guru-voice strong {
+  color: #ffd966;
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* Issues Box */
+.issues-box {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
+  padding: 12px 15px;
+}
+
+.issues-box h4 {
+  color: #f59e0b;
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.issues-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.issues-box li {
+  color: #d0d0d0;
+  padding-left: 20px;
+  margin: 6px 0;
+  position: relative;
+  font-size: 0.9rem;
+}
+
+.issues-box li:before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+/* Practice Tips */
+.practice-tips {
+  background: rgba(147, 112, 219, 0.1);
+  border: 1px solid rgba(147, 112, 219, 0.3);
+  border-radius: 10px;
+  padding: 12px 15px;
+}
+
+.practice-tips h4 {
+  color: #c084fc;
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.practice-tips p {
+  margin: 0;
+  color: #d0d0d0;
+  font-size: 0.9rem;
+}
+
+/* ============================================================================
+   PERMISSION DENIED
+   ========================================================================== */
+
+.camera-permission-denied {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 15px;
+  padding: 40px;
+}
+
+.denied-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.denied-content h3 {
+  font-size: 1.8rem;
+  color: #ffd966;
+  margin: 0 0 15px 0;
+}
+
+.denied-content p {
+  color: #d0d0d0;
+  margin: 10px 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.camera-help {
+  background: rgba(255, 217, 102, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  border-left: 3px solid #ffd966;
+  font-style: italic;
+  color: #b0b0b0;
+  font-size: 0.9rem !important;
+  margin-top: 15px;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .camera-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-section {
+    max-height: none;
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .camera-layout {
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .video-wrapper {
+    aspect-ratio: auto;
+    min-height: 300px;
+  }
+
+  .feedback-section {
+    min-height: 250px;
+    padding: 15px;
+  }
+
+  .score-badge {
+    top: 10px;
+    right: 10px;
+    padding: 10px 14px;
+  }
+
+  .capture-btn {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .feedback-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .score-indicator {
+    width: 100%;
+    justify-content: center;
+  }
+}

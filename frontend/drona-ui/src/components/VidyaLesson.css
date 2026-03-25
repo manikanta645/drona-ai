@@ -1,0 +1,336 @@
+/* VIDYA LESSON STYLING */
+
+.vidya-lesson-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  min-height: 100vh;
+  padding: 20px;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* GURU TEACHING SECTION */
+.guru-teaching-section {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 217, 102, 0.05);
+  border: 2px solid #ffd966;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.guru-video-area {
+  width: 100%;
+  height: 250px;
+  background: rgba(255, 217, 102, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  border: 2px solid #ffd966;
+}
+
+.guru-placeholder {
+  text-align: center;
+}
+
+.guru-icon {
+  font-size: 4rem;
+  margin-bottom: 10px;
+}
+
+.guru-name {
+  font-size: 1.2rem;
+  color: #ffd966;
+  font-weight: bold;
+}
+
+.guru-status {
+  font-size: 0.9rem;
+  color: #4caf50;
+}
+
+.guru-speech {
+  flex: 1;
+}
+
+.lesson-title {
+  color: #ffd966;
+  font-size: 1.5rem;
+  margin: 0 0 10px 0;
+  border-bottom: 2px solid #ffd966;
+  padding-bottom: 10px;
+}
+
+.lesson-description {
+  color: #ddd;
+  margin: 10px 0 20px 0;
+  font-style: italic;
+}
+
+.guru-message-box {
+  background: rgba(255, 217, 102, 0.1);
+  border-left: 4px solid #ffd966;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.guru-text {
+  color: #fff;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.teaching-points {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.teaching-points h4 {
+  color: #ffd966;
+  margin-top: 0;
+}
+
+.teaching-points ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.teaching-point {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 217, 102, 0.2);
+  display: flex;
+  gap: 10px;
+}
+
+.teaching-point:last-child {
+  border-bottom: none;
+}
+
+.point-number {
+  color: #ffd966;
+  font-weight: bold;
+  min-width: 20px;
+}
+
+.point-text {
+  color: #ddd;
+  flex: 1;
+}
+
+/* STUDENT ANALYSIS SECTION */
+.student-analysis-section {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #ffd966;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.section-title {
+  color: #ffd966;
+  font-size: 1.2rem;
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+.camera-placeholder {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 217, 102, 0.05);
+  border: 2px dashed #ffd966;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.camera-placeholder p {
+  color: #ffd966;
+  margin-bottom: 15px;
+}
+
+.btn-enable-camera {
+  padding: 10px 20px;
+  background: #ffd966;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-enable-camera:hover {
+  background: #f4c430;
+  transform: scale(1.05);
+}
+
+/* LESSON PHASE INDICATOR */
+.lesson-phase-indicator {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255, 217, 102, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #ffd966;
+  margin-bottom: 20px;
+}
+
+.phase {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  background: rgba(255, 217, 102, 0.1);
+  border: 2px solid rgba(255, 217, 102, 0.3);
+  border-radius: 5px;
+  color: #999;
+  transition: all 0.3s ease;
+}
+
+.phase.active {
+  background: rgba(255, 217, 102, 0.3);
+  border-color: #ffd966;
+  color: #ffd966;
+  font-weight: bold;
+}
+
+.phase.done {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: #4caf50;
+  color: #4caf50;
+}
+
+/* LESSON ACTIONS */
+.lesson-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.btn-ready,
+.btn-practice,
+.btn-complete-practice,
+.btn-submit-lesson {
+  padding: 12px 30px;
+  background: #ffd966;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-ready:hover,
+.btn-practice:hover,
+.btn-complete-practice:hover,
+.btn-submit-lesson:hover {
+  background: #f4c430;
+  transform: scale(1.05);
+}
+
+.btn-cancel {
+  padding: 12px 30px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+  background: #ff5252;
+  transform: scale(1.05);
+}
+
+.practice-timer {
+  background: rgba(255, 217, 102, 0.2);
+  padding: 10px 20px;
+  border-radius: 5px;
+  color: #ffd966;
+  font-weight: bold;
+}
+
+.reflection-area {
+  grid-column: 1 / -1;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #ffd966;
+}
+
+.reflection-area h4 {
+  color: #ffd966;
+  margin-top: 0;
+}
+
+.reflection-notes {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #ffd966;
+  border-radius: 5px;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.95rem;
+  resize: vertical;
+  margin-top: 10px;
+}
+
+.reflection-notes::placeholder {
+  color: #666;
+}
+
+.reflection-notes:focus {
+  outline: none;
+  border-color: #f4c430;
+  box-shadow: 0 0 10px rgba(255, 217, 102, 0.2);
+}
+
+/* LESSON LOADING */
+.lesson-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #ffd966;
+  font-size: 1.5rem;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .vidya-lesson-container {
+    grid-template-columns: 1fr;
+  }
+
+  .guru-teaching-section {
+    grid-column: 1;
+  }
+
+  .student-analysis-section {
+    grid-column: 1;
+  }
+}

@@ -1,137 +1,198 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './YudhaMode.css';
-import dronacharya from '../assets/dronacharya.jpg';
+import dronaImage from '../assets/dronacharya.jpg';
 
-const YudhaMode = ({ studentName, studentLevel, respectMeter, askDrona, chatHistory = [], isLoading = false }) => {
-  const scrollContainerRef = useRef(null);
-  const [selectedStrategy, setSelectedStrategy] = useState('defense');
-  const [battleCount, setBattleCount] = useState(0);
+const YudhaMode = ({ 
+  studentName, 
+  studentLevel, 
+  respectMeter = 50,
+  studentProfile = null,
+  onRespectMeterChange = () => {},
+  onLessonComplete = () => {}
+}) => {
+  const [phase, setPhase] = useState('select');
+  const [allLessons, setAllLessons] = useState([]);
+  const [completedLessons, setCompletedLessons] = useState(studentProfile?.lessons_completed || []);
+  const [loading, setLoading] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+  const [performanceScore, setPerformanceScore] = useState(null);
+  const [guruFeedback, setGuruFeedback] = useState('');
+  const [lessonPassed, setLessonPassed] = useState(false);
+  const [attemptNumber, setAttemptNumber] = useState(1);
 
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      setTimeout(() => {
-        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-      }, 100);
+    loadLessons();
+  }, []);
+
+  const loadLessons = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://127.0.0.1:8000/api/vidya/lessons/yudha');
+      const data = await response.json();
+      if (data.lessons) setAllLessons(data.lessons);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [chatHistory]);
-
-  const strategies = [
-    { id: 'defense', name: 'Defense', emoji: '🛡️', desc: 'Protect your position' },
-    { id: 'offense', name: 'Offense', emoji: '⚔️', desc: 'Attack strategy' },
-    { id: 'deception', name: 'Deception', emoji: '🎭', desc: 'Cunning tactics' },
-    { id: 'retreat', name: 'Retreat', emoji: '🏃', desc: 'Strategic withdrawal' }
-  ];
-
-  const handleExecuteStrategy = () => {
-    setBattleCount(b => b + 1);
-    askDrona(`I am executing ${strategies.find(s => s.id === selectedStrategy).name} strategy. Analyze the battle outcome.`);
   };
 
-  return (
-    <div className="yudha-container">
-      <div className="yudha-header">
-        <h1 className="yudha-title">⚔️ Yudha Vidya - War Strategy & Tactics</h1>
-        <p className="yudha-subtitle">Master the art of battle and command</p>
-      </div>
+  const getAvailable = () => allLessons.filter(l => !completedLessons.includes(l.lesson_id));
 
-      <div className="yudha-content">
-        {/* Left: Strategy Selection */}
-        <div className="strategy-panel">
-          <h2 className="panel-title">Battle Strategies</h2>
-          <div className="strategy-grid">
-            {strategies.map((s) => (
-              <div
-                key={s.id}
-                className={`strategy-card ${selectedStrategy === s.id ? 'active' : ''}`}
-                onClick={() => setSelectedStrategy(s.id)}
-              >
-                <div className="strategy-emoji">{s.emoji}</div>
-                <div className="strategy-name">{s.name}</div>
-                <div className="strategy-desc">{s.desc}</div>
-              </div>
-            ))}
-          </div>
+  const handleSelectLesson = async (lesson) => {
+    setSelectedLesson(lesson);
+    setPhase('explain');
+    await startSession(lesson.lesson_id);
+  };
 
+  const startSession = async (lessonId) => {
+    try {
+      setLoading(true);
+      let studentId = localStorage.getItem('studentId');
+      if (!studentId) {
+        studentId = studentName.replace(/\s+/g, '_').toLowerCase();
+        localStorage.setItem('studentId', studentId);
+      }
+      
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/vidya/start-session/${studentId}/yudha/${lessonId}`,
+        { method: 'POST' }
+      );
+      
+      const data = await response.json();
+      if (data.session_id) {
+        setSessionId(data.session_id);
+        setSessionStartTime(new Date());
+        setAttemptNumber(1);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitPractice = async () => {
+    try {
+      setLoading(true);
+      const timeTaken = (new Date() - sessionStartTime) / 1000;
+      const studentId = localStorage.getItem('studentId') || studentName.replace(/\s+/g, '_').toLowerCase();
+      
+      const response = await fetch(`http://127.0.0.1:8000/api/vidya/submit-practice/${sessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: studentId,
+          vidya_id: 'yudha',
+          lesson_id: selectedLesson.lesson_id,
+          text_answer: 'War strategy practice',
+          time_taken: timeTaken,
+          attempt_number: attemptNumber
+        })
+      });
+      
+      const result = await response.json();
+      if (result.performance_score !== undefined) {
+        setPerformanceScore(result.performance_score);
+        setGuruFeedback(result.feedback);
+        setLessonPassed(result.passed);
+        if (result.passed) {
+          onRespectMeterChange(Math.floor(result.performance_score / 20));
+        }
+        setPhase('feedback');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (phase === 'select') {
+    return (
+      <div className="yudha-container">
+        <div className="yudha-header">
+          <h1>⚔️ Yudha Vidya - War Strategy</h1>
+          <p>Level: {studentLevel} | Respect: {respectMeter} | Completed: {completedLessons.length}/{allLessons.length}</p>
         </div>
-
-        {/* Middle: Guru & Battle Field */}
-        <div className="battlefield-center">
-          <div className={`commander-avatar ${isLoading ? 'strategizing' : ''}`}>
-            <img src={dronacharya} alt="Āchārya Droṇāchārya" className="avatar-image" />
-            {isLoading && <div className="strategy-aura"></div>}
-          </div>
-          <p className="commander-name">Āchārya Droṇāchārya</p>
-
-          {/* Battlefield Visualization */}
-          <div className="battle-map">
-            <div className={`army-formation ${selectedStrategy}`}>
-              <div className="troop">🗡️</div>
-              <div className="troop">🛡️</div>
-              <div className="troop">🏹</div>
+        <div className="lesson-selection">
+          {loading ? <p>Loading...</p> : getAvailable().length > 0 ? (
+            <div className="lessons-grid">
+              {getAvailable().map(l => (
+                <div key={l.lesson_id} className="lesson-card" onClick={() => handleSelectLesson(l)}>
+                  <h3>{l.name}</h3>
+                  <p>{l.description}</p>
+                </div>
+              ))}
             </div>
-          </div>
-
-          {/* Strategy Feedback */}
-          <div className="feedback-area" ref={scrollContainerRef}>
-            {chatHistory.slice(-5).map((msg, idx) => (
-              <div key={idx} className={`feedback-msg ${msg.type}`}>
-                <p>{msg.text}</p>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="loading-battle">
-                <div className="battle-loader">⚔️</div>
-                <p>Analyzing battle strategy...</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Battle Controls */}
-        <div className="battle-controls">
-          <div className="current-strategy">
-            <h3>Current Strategy</h3>
-            <div className="strategy-display">
-              {strategies.find(s => s.id === selectedStrategy)?.emoji}
-            </div>
-            <p className="strategy-name-display">{strategies.find(s => s.id === selectedStrategy)?.name}</p>
-          </div>
-
-          <div className="execute-box">
-            <h3>Execute Strategy</h3>
-            <button 
-              className="execute-btn"
-              onClick={handleExecuteStrategy}
-              disabled={isLoading}
-            >
-              ⚔️ Deploy Forces
-            </button>
-            <p className="execute-hint">Execute your chosen strategy</p>
-          </div>
-
-          <div className="formations-box">
-            <h3>Army Formations</h3>
-            <div className="formations-list">
-              <div className="formation">Phalanx</div>
-              <div className="formation">Wedge</div>
-              <div className="formation">Circle</div>
-            </div>
-          </div>
-
-          <div className="victory-box">
-            <h3>Victory Progress</h3>
-            <div className="victory-bar">
-              <div 
-                className="victory-fill" 
-                style={{ width: `${Math.min(100, battleCount * 25)}%` }}
-              ></div>
-            </div>
-            <p className="victory-text">{Math.min(100, battleCount * 25)}% Victory</p>
-          </div>
+          ) : <p>All war strategy lessons completed!</p>}
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (phase === 'explain') {
+    return (
+      <div className="yudha-container">
+        <div className="yudha-header"><h1>{selectedLesson?.name}</h1></div>
+        <div className="explain-section">
+          <img src={dronaImage} alt="Guru" className="guru-avatar" />
+          <p>{selectedLesson?.explanation || 'Learn war strategy'}</p>
+          <button onClick={() => setPhase('demonstrate')}>See Strategy →</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'demonstrate') {
+    return (
+      <div className="yudha-container">
+        <div className="yudha-header"><h1>Strategy</h1></div>
+        <div className="demonstrate-section">
+          <p>{selectedLesson?.demonstration || 'Strategy demonstration'}</p>
+          <button onClick={() => setPhase('practice')}>Plan Battle →</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'practice') {
+    return (
+      <div className="yudha-container">
+        <div className="yudha-header"><h1>Practice: {selectedLesson?.name}</h1></div>
+        <div className="practice-section">
+          <p>Plan and execute your strategy...</p>
+          <button onClick={handleSubmitPractice} disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Strategy'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'feedback') {
+    return (
+      <div className="yudha-container">
+        <div className="yudha-header"><h1>Result</h1></div>
+        <div className="feedback-section" style={{background: lessonPassed ? '#2ecc71' : '#e74c3c', color: 'white', padding: '20px', textAlign: 'center', borderRadius: '8px'}}>
+          <h2>Score: {performanceScore?.toFixed(0)}</h2>
+          <p>{guruFeedback}</p>
+          <button onClick={lessonPassed ? () => {
+            setCompletedLessons([...completedLessons, selectedLesson.lesson_id]);
+            onLessonComplete(selectedLesson.lesson_id);
+            setPhase('select');
+          } : () => {
+            setAttemptNumber(attemptNumber + 1);
+            setPhase('practice');
+          }} style={{marginTop: '15px', padding: '10px 20px'}}>
+            {lessonPassed ? 'Next Lesson →' : 'Retry'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default YudhaMode;

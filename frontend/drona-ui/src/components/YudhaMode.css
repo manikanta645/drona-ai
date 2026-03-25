@@ -13,6 +13,7 @@
   color: #f0f0f0;
   font-family: 'Georgia', 'Garamond', serif;
   overflow: hidden;
+  padding-right: 40px;
 }
 
 @keyframes battleFlow {
@@ -53,6 +54,8 @@
   padding: 15px;
   flex: 1;
   overflow: hidden;
+  margin-left: auto;
+  direction: rtl;
 }
 
 /* ========== LEFT PANEL: STRATEGY SELECTION ========== */

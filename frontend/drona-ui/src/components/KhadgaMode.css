@@ -14,6 +14,7 @@
   font-family: 'Georgia', 'Garamond', serif;
   color: #e8d7c3;
   position: relative;
+  padding-right: 40px;
 }
 
 /* Combat energy background */
@@ -84,6 +85,8 @@
   position: relative;
   z-index: 2;
   overflow: hidden;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 /* ========================================

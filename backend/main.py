@@ -20,11 +20,27 @@ from pydantic import BaseModel, ConfigDict
 import json
 import os
 import random
-import subprocess
 import re
 import requests
+import base64
 from datetime import datetime
 from typing import Optional, List
+from vidya_modes import get_vidya, get_vidya_lesson, get_vidya_test, get_next_lesson
+
+try:
+    import cv2
+    import numpy as np
+    CV_AVAILABLE = True
+except ImportError:
+    CV_AVAILABLE = False
+
+# Import VIDYA API router
+try:
+    from vidya_api import router as vidya_router
+    VIDYA_API_AVAILABLE = True
+except ImportError:
+    VIDYA_API_AVAILABLE = False
+    print("[WARNING] VIDYA API module not available - VIDYA endpoints will not be registered")
 
 # ============================================================================
 # SETUP
@@ -40,6 +56,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register VIDYA API router
+if VIDYA_API_AVAILABLE:
+    app.include_router(vidya_router)
+    print("[INFO] VIDYA API endpoints registered successfully")
+else:
+    print("[WARNING] VIDYA API not loaded")
+
 print("[INFO] Initializing DRONA - Digital Repository Of National Arts")
 print("[INFO] Mode: AI-Only (Using Local Ollama HTTP API)")
 print("[INFO] AI Model: gpt-oss:120b-cloud (120B parameter cloud model)")
@@ -52,8 +75,45 @@ print("[INFO] Server starting on http://localhost:8000")
 # ============================================================================
 
 OLLAMA_API_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "gpt-oss:120b-cloud"  # Using cloud model available in your Ollama
-OLLAMA_TIMEOUT = 120  # 120 seconds timeout for responses
+OLLAMA_MODEL = "gpt-oss:120b-cloud"
+OLLAMA_TIMEOUT = 60
+
+# ============================================================================
+# MODE RULES - Scope keywords for each vidya mode
+# ============================================================================
+
+MODE_RULES = {
+    "dhanur": {
+        "scope_keywords": ["bow", "arrow", "archery", "target", "precision", "focus", "discipline", "stance", "draw", "release"],
+        "redirect_message": "Shishya, your question belongs to the path of Dhanur Vidya - the art of archery. Shall we practice with the bow?"
+    },
+    "khadga": {
+        "scope_keywords": ["sword", "blade", "combat", "fight", "warrior", "strike", "defense", "technique", "weapon"],
+        "redirect_message": "Shishya, your question speaks of Khadga Vidya - the way of the sword. Shall we explore the blade's wisdom?"
+    },
+    "dharma": {
+        "scope_keywords": ["right", "wrong", "duty", "justice", "ethics", "moral", "virtue", "righteousness", "honor", "truth"],
+        "redirect_message": "Shishya, your question touches Dharma Vidya - the path of righteousness. Shall we explore what is right?"
+    },
+    "dhyana": {
+        "scope_keywords": ["meditation", "mind", "consciousness", "awareness", "peace", "silence", "inner", "spiritual", "enlightenment"],
+        "redirect_message": "Shishya, your question belongs to Dhyana Vidya - the art of meditation. Shall we sit in silence together?"
+    },
+    "yudha": {
+        "scope_keywords": ["war", "strategy", "battle", "tactics", "military", "command", "leadership", "victory", "army"],
+        "redirect_message": "Shishya, your question speaks of Yudha Vidya - the science of war. Shall we study the art of strategy?"
+    },
+    "shastra": {
+        "scope_keywords": ["knowledge", "science", "learning", "wisdom", "teaching", "scripture", "understanding", "mastery"],
+        "redirect_message": "Shishya, your question belongs to Shastra Vidya - the pursuit of knowledge. Shall we explore the scriptures?"
+    }
+}
+
+# FastAPI startup event
+@app.on_event("startup")
+async def startup_event():
+    """Run on app startup"""
+    print("[STARTUP] Backend is ready! Will attempt to use Ollama for responses.")
 
 # Health check endpoint
 @app.get("/health")
@@ -77,6 +137,216 @@ def ping():
     print("[DEBUG] Ping requested")
     return {"status": "pong", "message": "Backend is alive"}
 
+@app.get("/check-ollama")
+def check_ollama():
+    """Check Ollama status and available models"""
+    print("[DEBUG] Ollama check requested")
+    result = {"status": "unknown", "details": {}}
+    
+    try:
+        # Check if Ollama is running
+        tags_response = requests.get("http://localhost:11434/api/tags", timeout=5)
+        if tags_response.status_code == 200:
+            models_data = tags_response.json()
+            result["status"] = "running"
+            result["models"] = [m.get("name") for m in models_data.get("models", [])]
+            result["model_being_used"] = OLLAMA_MODEL
+            result["model_available"] = OLLAMA_MODEL in (result.get("models") or [])
+            print(f"[DEBUG] Ollama status: {result}")
+            return result
+        else:
+            result["status"] = "error"
+            result["http_status"] = tags_response.status_code
+            return result
+    except requests.exceptions.ConnectionError as e:
+        result["status"] = "not_running"
+        result["error"] = f"Cannot connect to localhost:11434: {str(e)}"
+        return result
+    except Exception as e:
+        result["status"] = "error"
+        result["error"] = str(e)
+        return result
+
+
+# ============================================================================
+# VIDYA LEARNING SYSTEM ENDPOINTS - Complete educational framework
+# ============================================================================
+
+@app.get("/vidya/list")
+def list_all_vidyas():
+    """List all available vidyas"""
+    from vidya_modes import VIDYA_SYSTEM
+    vidyas = []
+    for key, vidya in VIDYA_SYSTEM.items():
+        vidyas.append({
+            "id": key,
+            "name": vidya["name"],
+            "description": vidya["description"],
+            "total_lessons": vidya["total_lessons"],
+            "total_tests": vidya["total_tests"],
+        })
+    return {"vidyas": vidyas}
+
+@app.get("/vidya/{vidya_name}")
+def get_vidya_info(vidya_name: str):
+    """Get complete vidya information with all lessons and tests"""
+    vidya = get_vidya(vidya_name)
+    if not vidya:
+        return {"error": f"Vidya '{vidya_name}' not found"}
+    return vidya
+
+@app.get("/vidya/{vidya_name}/lesson/{lesson_id}")
+def get_lesson_detail(vidya_name: str, lesson_id: int):
+    """Get detailed lesson information"""
+    lesson = get_vidya_lesson(vidya_name, lesson_id)
+    if not lesson:
+        return {"error": f"Lesson {lesson_id} in vidya '{vidya_name}' not found"}
+    return lesson
+
+@app.get("/vidya/{vidya_name}/test/{test_id}")
+def get_test_detail(vidya_name: str, test_id: int):
+    """Get detailed test information"""
+    test = get_vidya_test(vidya_name, test_id)
+    if not test:
+        return {"error": f"Test {test_id} in vidya '{vidya_name}' not found"}
+    return test
+
+@app.post("/vidya/{vidya_name}/lesson/{lesson_id}/start")
+def start_lesson(vidya_name: str, lesson_id: int, student_name: str = "Student"):
+    """Start a lesson - guru analyzes student and begins teaching"""
+    lesson = get_vidya_lesson(vidya_name, lesson_id)
+    if not lesson:
+        return {"error": f"Lesson not found"}
+    
+    # Build guru's initial teaching message
+    vidya = get_vidya(vidya_name)
+    guru_prompt = f"""
+You are Guru Dronacharya teaching lesson {lesson_id} of {vidya['name']}.
+
+LESSON: {lesson['title']}
+DESCRIPTION: {lesson['description']}
+
+TEACHING POINTS:
+{chr(10).join(f'- {point}' for point in lesson['teaching_points'])}
+
+GURU'S OPENING OBSERVATION:
+{lesson['guru_observation']}
+
+You are teaching {student_name}. Begin your teaching of this lesson. Be direct, wise, and challenging.
+Your student can see your image and you can analyze their posture through a camera feed.
+Start by analyzing their stance and readiness to learn, then begin teaching this specific lesson.
+"""
+    
+    # Get guru's response
+    guru_opening = call_ollama(guru_prompt, timeout=OLLAMA_TIMEOUT, question=lesson['title'])
+    
+    return {
+        "lesson": lesson,
+        "status": "started",
+        "guru_greeting": clean_ollama_response(guru_opening) if guru_opening else lesson['guru_observation'],
+        "camera_required": True,
+        "next_step": "show_camera_and_listen_to_guru",
+    }
+
+@app.post("/vidya/{vidya_name}/test/{test_id}/start")
+def start_test(vidya_name: str, test_id: int, student_name: str = "Student"):
+    """Start a test - guru sets up testing scenario"""
+    test = get_vidya_test(vidya_name, test_id)
+    if not test:
+        return {"error": f"Test not found"}
+    
+    vidya = get_vidya(vidya_name)
+    test_prompt = f"""
+You are Guru Dronacharya administering test {test_id} of {vidya['name']}.
+
+TEST: {test['title']}
+DESCRIPTION: {test['description']}
+TEST TYPE: {test['test_type']}
+
+PASSING CRITERIA:
+{chr(10).join(f"- {k}: {v}" for k, v in test['passing_criteria'].items())}
+
+You are testing {student_name}. Explain the test clearly and what they must do.
+Be demanding but fair. This is the moment to see if the teaching has taken root.
+"""
+    
+    guru_test_intro = call_ollama(test_prompt, timeout=OLLAMA_TIMEOUT, question=test['title'])
+    
+    return {
+        "test": test,
+        "status": "started",
+        "guru_instructions": clean_ollama_response(guru_test_intro) if guru_test_intro else f"Now we test your mastery of: {test['title']}",
+        "camera_required": True,
+        "duration_minutes": test.get("duration_minutes", 15),
+        "next_step": "perform_test_and_be_analyzed",
+    }
+
+@app.post("/vidya/{vidya_name}/lesson/{lesson_id}/complete")
+def complete_lesson(vidya_name: str, lesson_id: int, student_name: str = "Student", student_performance: str = ""):
+    """Mark lesson as complete and generate guru feedback"""
+    lesson = get_vidya_lesson(vidya_name, lesson_id)
+    if not lesson:
+        return {"error": f"Lesson not found"}
+    
+    # Build feedback prompt based on lesson and performance
+    feedback_prompt = f"""
+You are Guru Dronacharya. Student {student_name} has completed lesson {lesson_id}: "{lesson['title']}".
+
+Lesson Description: {lesson['description']}
+Student Performance: {student_performance if student_performance else "Completed the lesson"}
+
+Provide encouraging feedback that acknowledges their effort and guides them toward mastery.
+Be specific about what they did well and what to focus on next.
+Keep it concise but meaningful.
+"""
+    
+    next_lesson = get_next_lesson(vidya_name, lesson_id)
+    
+    guru_feedback = call_ollama(feedback_prompt, timeout=OLLAMA_TIMEOUT, question=f"Feedback for lesson {lesson_id}")
+    
+    return {
+        "lesson_completed": lesson_id,
+        "guru_feedback": clean_ollama_response(guru_feedback) if guru_feedback else "Well done. Continue to the next lesson.",
+        "next_lesson": next_lesson["id"] if next_lesson else None,
+        "vidya_complete": next_lesson is None,  # True if this was last lesson
+        "next_step": "next_lesson" if next_lesson else "appreciation_ceremony",
+    }
+
+@app.post("/vidya/{vidya_name}/complete")
+def complete_vidya(vidya_name: str, student_name: str = "Student"):
+    """Mark entire vidya as complete - guru appreciates the student"""
+    vidya = get_vidya(vidya_name)
+    if not vidya:
+        return {"error": f"Vidya '{vidya_name}' not found"}
+    
+    appreciation_msgs = vidya.get("appreciation_messages", [])
+    
+    completion_prompt = f"""
+{student_name} has completed the entire {vidya['name']} - all {vidya['total_lessons']} lessons and {vidya['total_tests']} tests.
+
+This is a moment of profound significance. The student has been transformed.
+
+Provide a final appreciation speech from Guru Dronacharya that:
+1. Honors the student's dedication and transformation
+2. Recognizes the depth of the vidya they have mastered
+3. Explains what this mastery means for their future path
+4. Sets the context for what vidyas they might learn next
+5. Closes with a blessing appropriate to a true guru
+
+This should feel like a sacred moment - the student's graduation into mastery.
+"""
+    
+    guru_final = call_ollama(completion_prompt, timeout=OLLAMA_TIMEOUT, question=f"Completion of {vidya_name}")
+    
+    return {
+        "vidya_name": vidya_name,
+        "student_name": student_name,
+        "status": "complete",
+        "completion_message": clean_ollama_response(guru_final) if guru_final else "Congratulations, Shishya! You have completed this vidya with excellence.",
+        "mastery_level": "Complete",
+        "next_vidyas": ["khadga", "dhyana"] if vidya_name == "dhanur" else [],
+        "ceremony_type": "graduation_blessing",
+    }
 
 
 # ============================================================================
@@ -108,6 +378,8 @@ Your Core Personality:
 - You keep responses focused and powerful - brevity increases impact (1-2 sentences is enough)
 - When insulted, you respond with wisdom, not weakness or confusion
 - You never apologize for harsh truths - truth is medicine, not poison
+- You do not understand modern technology, software, AI systems, or internet-era tools
+- If asked about modern topics, redirect to timeless principles, discipline, ethics, strategy, and human behavior
 """
 
 # ============================================================================
@@ -115,6 +387,12 @@ Your Core Personality:
 # ============================================================================
 GURU_PERSONAS = {
     "samvad": """SAMVAD MODE - The Path of Open Dialogue & Discussion
+In this mode, engage in true dialogue and discussion with your student. Ask penetrating questions that make them think deeper.
+Challenge their assumptions gently. Help them discover wisdom through guided inquiry rather than direct lecturing.
+This is the mode of conversation and mutual exploration. Be conversational yet maintain your authority.
+Let them reach conclusions through your guidance - awakening their own wisdom is your goal.""",
+    
+    "chat": """SAMVAD MODE - The Path of Open Dialogue & Discussion
 In this mode, engage in true dialogue and discussion with your student. Ask penetrating questions that make them think deeper.
 Challenge their assumptions gently. Help them discover wisdom through guided inquiry rather than direct lecturing.
 This is the mode of conversation and mutual exploration. Be conversational yet maintain your authority.
@@ -177,59 +455,6 @@ Share your knowledge of Brahmastra, Agneyastra, Narayanastra, and the other divi
 Emphasize that true mastery of astras is not about power - it is about wisdom to wield such power responsibly.""",
 }
 
-MODE_NAMES = {
-    "samvad": "Samvad",
-    "dhanur": "Dhanur",
-    "dharma": "Dharma",
-    "dhyana": "Dhyana",
-    "khadga": "Khadga",
-    "yudha": "Yudha",
-    "itihaasa": "Itihaasa",
-    "shastra": "Shastra",
-    "weapons": "Astras",
-}
-
-# ============================================================================
-# MODE-SPECIFIC RULES & SCOPE DEFINITIONS
-# ============================================================================
-MODE_RULES = {
-    "dhanur": {
-        "focus": "Archery, bow technique, aim, focus, precision",
-        "scope_keywords": ["arrow", "bow", "aim", "archery", "target", "precision", "focus"],
-        "out_of_scope_redirect": "Shishya, this is DHANUR mode - the path of archery and precision. We study the bow, aim, and focus. For other knowledge, visit the appropriate mode.",
-    },
-    "khadga": {
-        "focus": "Sword mastery, combat, technique, courage, truth",
-        "scope_keywords": ["sword", "blade", "combat", "courage", "technique", "fight", "fearless"],
-        "out_of_scope_redirect": "Shishya, this is KHADGA mode - the path of the sword and fearlessness. For that knowledge, visit another path.",
-    },
-    "dharma": {
-        "focus": "Righteousness, duty, ethics, moral law, virtue",
-        "scope_keywords": ["dharma", "duty", "righteous", "virtue", "ethics", "moral", "law"],
-        "out_of_scope_redirect": "Shishya, this is DHARMA mode - we explore righteousness and duty. For other topics, seek the appropriate mode.",
-    },
-    "dhyana": {
-        "focus": "Meditation, inner peace, mindfulness, spirituality",
-        "scope_keywords": ["meditation", "peace", "stillness", "mind", "spirit", "consciousness", "inner"],
-        "out_of_scope_redirect": "Shishya, this is DHYANA mode - the path of meditation and inner vision. For other knowledge, visit another mode.",
-    },
-    "yudha": {
-        "focus": "War, strategy, tactics, military wisdom",
-        "scope_keywords": ["war", "strategy", "tactics", "battle", "military", "timing", "positioning"],
-        "out_of_scope_redirect": "Shishya, this is YUDHA mode - the path of strategy and warfare. For other knowledge, seek another mode.",
-    },
-    "shastra": {
-        "focus": "Sacred texts, classical knowledge, philosophy, disciplines",
-        "scope_keywords": ["text", "knowledge", "philosophy", "discipline", "learning", "vedas", "upanishad"],
-        "out_of_scope_redirect": "Shishya, this is SHASTRA mode - the path of sacred knowledge and texts. For other topics, visit another mode.",
-    },
-    "itihaasa": {
-        "focus": "History, stories, ancient events, lived experience",
-        "scope_keywords": ["story", "history", "happened", "ancient", "event", "mahabharata", "ramayana"],
-        "out_of_scope_redirect": "Shishya, this is ITIHAASA mode - the path of ancient stories and lived wisdom. For other topics, seek another mode.",
-    },
-}
-
 # ============================================================================
 # IDLE GURU MESSAGES - Used when in vidya mode but no specific feedback
 # ============================================================================
@@ -283,12 +508,118 @@ IDLE_GURU_MESSAGES = {
     ]
 }
 
-def call_ollama(prompt: str, timeout: int = 60) -> Optional[str]:
-    """Call Ollama HTTP API with the given prompt. Returns response or None if fails."""
+def load_heritage_knowledge() -> List[dict]:
+    """Load heritage knowledge base from JSON file."""
     try:
-        print(f"[DEBUG] Calling Ollama API at {OLLAMA_API_URL}")
-        print(f"[DEBUG] Using model: {OLLAMA_MODEL}")
+        heritage_path = os.path.join("data", "heritage.json")
+        with open(heritage_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"[WARNING] Could not load heritage knowledge: {str(e)}")
+        return []
+
+
+def generate_generic_guru_response(question: str, mode: str = "chat") -> str:
+    """Generate a generic Guru-like response when no exact match is found."""
+    
+    # Guru prompts based on question type and mode
+    generic_responses = {
+        "dhanur": [
+            "Shishya, your question tests your focus. Remember: like an archer drawing the bow, clarity of intent precedes all action.",
+            "This matter belongs to the deeper teachings of Dhanur Vidya. Return to your practice, and the answer shall reveal itself.",
+            "Ah, a worthy inquiry. Contemplate this: as the arrow follows the breath, so does understanding follow earnest practice."
+        ],
+        "khadga": [
+            "Your curiosity mirrors the sharp edge of a blade. Seek the truth as a warrior seeks victory - with resolve and precision.",
+            "In Khadga Vidya, many questions dissolve when the mind becomes as still as a warrior's focus before battle.",
+            "This knowledge emerges from practice, not words alone. Perfect your stance, and your doubt shall transform into mastery."
+        ],
+        "dharma": [
+            "Shishya, this question touches the heart of Dharma Vidya. Reflect: what is the right action in your circumstance?",
+            "The path of righteousness is walked, not merely understood. Your answer lies within your own commitment to truth.",
+            "Dharma whispers its wisdom to those who listen with both heart and conscience. What does yours tell you?"
+        ],
+        "dhyana": [
+            "Silence holds the answer you seek. Sit in meditation, and let the noise of questions settle like dust.",
+            "In the stillness of Dhyana Vidya, all confusion dissolves. The question itself may dissolve when the mind is at peace.",
+            "Your seeking is natural, but wisdom comes not from external answers but from inner stillness. Be patient with yourself."
+        ],
+        "chat": [
+            "Your question is worthy, Shishya, but the answer grows clearer with practice and reflection. What path of learning calls to you?",
+            "I sense the hunger in your inquiry. Return to the sacred texts, and your answer shall unfold naturally.",
+            "The knowledge you seek exists in the space between question and silence. Contemplate deeply, and it shall arise.",
+        ]
+    }
+    
+    responses = generic_responses.get(mode, generic_responses["chat"])
+    return random.choice(responses)
+
+
+def find_similar_answer_from_heritage(question: str, max_results: int = 3) -> Optional[str]:
+    """Find similar Q&A pairs from heritage.json using keyword matching and semantic similarity."""
+    try:
+        heritage = load_heritage_knowledge()
+        if not heritage:
+            return None
         
+        # Extract keywords from question (simple keyword matching)
+        question_lower = question.lower()
+        question_words = set(word for word in question_lower.split() if len(word) > 3)
+        
+        matches = []
+        for entry in heritage:
+            # Check if entry has a question field (is Q&A pair, not just text)
+            if "question" not in entry or "answer" not in entry:
+                continue
+            
+            entry_question = (entry.get("question") or "").lower()
+            entry_answer = entry.get("answer", "")
+            
+            # Skip fallback error answers
+            if "connection to divine knowledge faltered" in entry_answer:
+                continue
+            
+            # Calculate similarity using keyword overlap
+            entry_words = set(word for word in entry_question.split() if len(word) > 3)
+            overlap = len(question_words & entry_words)
+            
+            # Also check for exact topic matches
+            topic_match = 0
+            if "ramayana" in question_lower and "ramayana" in entry_question:
+                topic_match = 2
+            if "mahabharata" in question_lower and "mahabharata" in entry_question:
+                topic_match = 2
+            if "vedas" in question_lower and "vedas" in entry_question:
+                topic_match = 2
+            if "guru" in question_lower and "guru" in entry_question:
+                topic_match = 1
+            
+            score = overlap + topic_match
+            
+            # Only include matches with some keyword overlap
+            if score > 0 or (overlap >= 1):
+                matches.append({
+                    "score": score,
+                    "answer": entry_answer,
+                    "question": entry.get("question", "")
+                })
+        
+        # Sort by score and return top answer
+        if matches:
+            matches.sort(key=lambda x: x["score"], reverse=True)
+            best_match = matches[0]
+            print(f"[FALLBACK] Using heritage knowledge: '{best_match['question']}'")
+            return best_match["answer"]
+        
+        return None
+    except Exception as e:
+        print(f"[ERROR] Error searching heritage knowledge: {str(e)}")
+        return None
+
+
+def call_ollama(prompt: str, timeout: int = 60, use_fallback: bool = True, question: str = "") -> Optional[str]:
+    """Call Ollama HTTP API with the given prompt. Falls back to heritage knowledge if unavailable."""
+    try:
         payload = {
             "model": OLLAMA_MODEL,
             "prompt": prompt,
@@ -302,35 +633,37 @@ def call_ollama(prompt: str, timeout: int = 60) -> Optional[str]:
             timeout=timeout
         )
         
-        print(f"[DEBUG] Ollama HTTP status code: {response.status_code}")
-        
         if response.status_code == 200:
             try:
                 data = response.json()
                 if "response" in data:
                     result = data["response"].strip()
-                    print("[DEBUG] Ollama response received successfully")
-                    return result
-                else:
-                    print("[ERROR] Ollama response missing 'response' field")
-                    return None
+                    if result:
+                        print("[OLLAMA] Successfully generated response")
+                        return result
             except Exception as e:
                 print(f"[ERROR] Failed to parse Ollama JSON response: {str(e)}")
-                return None
         else:
             print(f"[ERROR] Ollama HTTP error: {response.status_code}")
-            print(f"[DEBUG] Response body: {response.text[:200]}")
-            return None
             
     except requests.exceptions.Timeout:
         print(f"[ERROR] Ollama request timeout after {timeout}s")
-        return None
     except requests.exceptions.ConnectionError:
-        print("[ERROR] Cannot connect to Ollama - is it running on localhost:11434?")
-        return None
+        print("[ERROR] Cannot connect to Ollama at localhost:11434")
     except Exception as e:
         print(f"[ERROR] Ollama API error: {str(e)}")
-        return None
+    
+    # Fallback: Try to search heritage using the question directly
+    if use_fallback and question:
+        print("[INFO] Attempting fallback to heritage knowledge base...")
+        try:
+            fallback_answer = find_similar_answer_from_heritage(question)
+            if fallback_answer:
+                return fallback_answer
+        except Exception as e:
+            print(f"[ERROR] Fallback search failed: {str(e)}")
+    
+    return None
 
 
 def clean_ollama_response(text: str) -> str:
@@ -458,6 +791,20 @@ def build_guru_prompt(question: str, mode: str, chat_history: list = None) -> st
     )
     return "\n\n".join(sections)
 
+
+MODERN_TOPIC_KEYWORDS = [
+    "ai", "artificial intelligence", "machine learning", "computer", "software", "coding",
+    "programming", "internet", "smartphone", "mobile app", "app", "cloud", "blockchain",
+    "cryptocurrency", "robot", "laptop", "gpu", "cpu", "algorithm", "neural network",
+    "chatgpt", "openai", "google", "microsoft", "tesla", "social media", "instagram",
+    "youtube", "tiktok", "discord", "telegram", "whatsapp", "email"
+]
+
+
+def _is_modern_topic(text: str) -> bool:
+    normalized = (text or "").lower()
+    return any(keyword in normalized for keyword in MODERN_TOPIC_KEYWORDS)
+
 def strip_metadata_prefix(text: str) -> str:
     """Remove old metadata prefixes from memory responses."""
     if not text:
@@ -522,6 +869,8 @@ supported_langs = {
 
 # Mode names and descriptions
 MODE_NAMES = {
+    "samvad": "Samvad",
+    "chat": "Samvad",
     "dhyana": "Dhyana - Meditation",
     "itihasa": "Itihasa - Stories of the Ancients",
     "astras": "Astras - Divine Weapons",
@@ -530,10 +879,11 @@ MODE_NAMES = {
     "dharma": "Dharma - Philosophy and Duty",
     "yudha": "Yudha - Strategy and Warfare",
     "shastra": "Shastra - Sacred Texts",
-    "chat": "Samvad",
 }
 
 MODE_DESCRIPTIONS = {
+    "samvad": "our open samvad, where you may speak freely without hierarchy",
+    "chat": "our open samvad, where you may speak freely without hierarchy",
     "dhyana": "the path of inner vision, where we quiet the mind and see beyond illusion",
     "itihasa": "the eternal stories that hold the wisdom of the ancients",
     "astras": "the study of power itself, knowledge that walks the edge between mastery and ruin",
@@ -542,7 +892,6 @@ MODE_DESCRIPTIONS = {
     "dharma": "the eternal law, the exploration of what is right and your duty",
     "yudha": "strategy and the art of war, where true victory is won before the first blade is drawn",
     "shastra": "the sacred texts, words inscribed by seers who touched the divine",
-    "chat": "our open samvad, where you may speak freely without hierarchy",
 }
 
 class Query(BaseModel):
@@ -680,6 +1029,231 @@ class ConversationLog:
                 json.dump(mem, f, indent=2, ensure_ascii=False)
         except Exception as e:
             print(f"[ERROR] Could not save student memory for {name}: {e}")
+
+
+# ============================================================================
+# VIDYA LESSON SYSTEM - Progressive learning with camera analysis
+# ============================================================================
+
+class VidyaLessonSystem:
+    """
+    Manages vidya learning progression, lessons, tests, and form analysis.
+    Each vidya has 5 levels with lessons, comprehension tests, and practice modes.
+    """
+    
+    VIDYA_LESSONS = {
+        "dhanur": {
+            "name": "Dhanur Vidya - Archery Mastery",
+            "levels": [
+                {
+                    "level": 1,
+                    "name": "Stance & Balance",
+                    "lessons": [
+                        {
+                            "id": "dhanur_1_1",
+                            "title": "The Foundation: Archer's Stance",
+                            "content": "The archer must stand like a mountain - firm yet flexible. Feet shoulder-width apart, knees slightly bent, weight distributed evenly. This is the foundation of all archery. Without proper stance, the arrow will never fly true.",
+                            "key_points": ["Feet positioning", "Knee bend", "Weight distribution", "Balance"],
+                            "practice_focus": "Posture alignment"
+                        },
+                        {
+                            "id": "dhanur_1_2",
+                            "title": "Grip & Hand Position",
+                            "content": "The bow must be held with control, not tension. Your grip should be firm but relaxed - like holding a bird without strangling it or letting it escape. The arrow nocks between your fingers with precision.",
+                            "key_points": ["Grip firmness", "Arrow nocking", "Hand position", "Finger alignment"],
+                            "practice_focus": "Grip technique"
+                        }
+                    ],
+                    "test_questions": [
+                        "Explain why an archer's stance begins with the feet. What happens if the feet are misaligned?",
+                        "Describe the correct grip for holding a bow. Why should it not be too tight?",
+                        "If you feel imbalanced, what adjustments should you make?",
+                    ],
+                    "practice_prompt": "Show your archery stance. I will analyze your posture."
+                },
+                {
+                    "level": 2,
+                    "name": "Aim & Focus",
+                    "lessons": [
+                        {
+                            "id": "dhanur_2_1",
+                            "title": "Eye-Target Alignment",
+                            "content": "The archer's eye must be the bridge between bow and target. Your line of sight must be true - draw a straight line from your eye through the arrow to the target. No deviation.",
+                            "key_points": ["Head position", "Eye alignment", "Focus intensity", "Target visualization"],
+                            "practice_focus": "Visual alignment"
+                        },
+                        {
+                            "id": "dhanur_2_2",
+                            "title": "Breath Control for Aim",
+                            "content": "Breathing is the rhythm of the archer. Inhale as you draw, hold your breath at full draw, exhale as you release. The breath centers your mind and steadies your aim.",
+                            "key_points": ["Breathing rhythm", "Hold point", "Release timing", "Mental clarity"],
+                            "practice_focus": "Breath awareness"
+                        }
+                    ],
+                    "test_questions": [
+                        "Why must the archer's eye remain fixed on the target?",
+                        "Describe the breathing pattern during a shot. How does it affect aim?",
+                        "What is the connection between breath and focus?",
+                    ],
+                    "practice_prompt": "Draw the bow and hold your aim. Show me your eye focus."
+                },
+                {
+                    "level": 3,
+                    "name": "Release & Follow-Through",
+                    "lessons": [
+                        {
+                            "id": "dhanur_3_1",
+                            "title": "The Perfect Release",
+                            "content": "Release is the moment of truth. The fingers must open in perfect timing, not jerking but flowing. The arrow leaves without deflection. A bad release destroys an otherwise perfect shot.",
+                            "key_points": ["Finger tension", "Timing", "Arrow clearance", "Minimal vibration"],
+                            "practice_focus": "Release technique"
+                        },
+                        {
+                            "id": "dhanur_3_2",
+                            "title": "Follow-Through Stability",
+                            "content": "Many archers stop shooting at release. The master continues through the shot. Your form should remain until the arrow finds its mark. This consistency leads to accuracy.",
+                            "key_points": ["Arm position", "Head stillness", "Body stability", "Shot completion"],
+                            "practice_focus": "Post-release form"
+                        }
+                    ],
+                    "test_questions": [
+                        "What happens if you jerk the bowstring instead of smoothly releasing?",
+                        "Describe what 'follow-through' means in archery.",
+                        "How does maintaining your form after release improve accuracy?",
+                    ],
+                    "practice_prompt": "Take a complete shot. Maintain your form through release."
+                },
+                {
+                    "level": 4,
+                    "name": "Advanced Techniques",
+                    "lessons": [
+                        {
+                            "id": "dhanur_4_1",
+                            "title": "Rapid Fire - Speed with Accuracy",
+                            "content": "The master archer can shoot rapidly without sacrificing precision. This requires perfect muscle memory. Each shot follows the previous flawlessly - stance, aim, release, follow-through in fluid succession.",
+                            "key_points": ["Muscle memory", "Cadence", "Consistency", "Precision under speed"],
+                            "practice_focus": "Speed & consistency"
+                        },
+                        {
+                            "id": "dhanur_4_2",
+                            "title": "Variable Distance & Angle Shooting",
+                            "content": "The bow must work at any distance, angle, and condition. Moving targets, changing distances, obscured vision - the archer adapts while maintaining core principles.",
+                            "key_points": ["Distance adjustment", "Angle compensation", "Adaptability", "Problem-solving"],
+                            "practice_focus": "Adaptive shooting"
+                        }
+                    ],
+                    "test_questions": [
+                        "What is the key to shooting rapidly while maintaining accuracy?",
+                        "How should you adjust your aim for longer distances?",
+                        "What principles never change, even when conditions are difficult?",
+                    ],
+                    "practice_prompt": "Show me rapid shooting sequences with proper form."
+                },
+                {
+                    "level": 5,
+                    "name": "Mastery & Philosophy",
+                    "lessons": [
+                        {
+                            "id": "dhanur_5_1",
+                            "title": "The Archer and the Bow as One",
+                            "content": "At mastery, there is no separation between archer and bow. Your intention flows to the arrow without thought. As Lord Krishna said to Arjuna, you must become the bow, the arrow, and the aim simultaneously.",
+                            "key_points": ["Mind-body unity", "Flow state", "Intuition", "Transcendence"],
+                            "practice_focus": "Meditative shooting"
+                        },
+                        {
+                            "id": "dhanur_5_2",
+                            "title": "Beyond Technique - The Way of the Archer",
+                            "content": "Technique is the foundation, but mastery is philosophy. The archer serves a purpose greater than skill. Every arrow carries intention, responsibility, and dharma.",
+                            "key_points": ["Purpose", "Responsibility", "Ethics", "Legacy"],
+                            "practice_focus": "Intentional shooting"
+                        }
+                    ],
+                    "test_questions": [
+                        "What is the difference between skilled shooting and masterful shooting?",
+                        "How does meditation enhance archery?",
+                        "What responsibility does an archer carry?",
+                    ],
+                    "practice_prompt": "Show me your transcendent form - shoot with intention and clarity."
+                }
+            ]
+        }
+    }
+    
+    @staticmethod
+    def get_lesson_for_vidya(vidya: str, level: int, lesson_number: int = 1) -> Optional[dict]:
+        """Get a specific lesson from a vidya."""
+        if vidya not in VidyaLessonSystem.VIDYA_LESSONS:
+            return None
+        
+        vidya_data = VidyaLessonSystem.VIDYA_LESSONS[vidya]
+        if level < 1 or level > len(vidya_data["levels"]):
+            return None
+        
+        level_data = vidya_data["levels"][level - 1]
+        if lesson_number < 1 or lesson_number > len(level_data["lessons"]):
+            return None
+        
+        return level_data["lessons"][lesson_number - 1]
+    
+    @staticmethod
+    def get_test_questions(vidya: str, level: int) -> List[str]:
+        """Get test questions for a vidya level."""
+        if vidya not in VidyaLessonSystem.VIDYA_LESSONS:
+            return []
+        
+        vidya_data = VidyaLessonSystem.VIDYA_LESSONS[vidya]
+        if level < 1 or level > len(vidya_data["levels"]):
+            return []
+        
+        level_data = vidya_data["levels"][level - 1]
+        return level_data.get("test_questions", [])
+    
+    @staticmethod
+    def load_student_vidya_progress(student_name: str, vidya: str) -> dict:
+        """Load a student's progress in a specific vidya."""
+        safe_name = "_".join(student_name.strip().split())
+        progress_path = os.path.join("data", f"{safe_name}_vidya_{vidya}.json")
+        
+        try:
+            with open(progress_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            # Default progress
+            return {
+                "student_name": student_name,
+                "vidya": vidya,
+                "current_level": 1,
+                "current_lesson": 1,
+                "stage": "learning",  # learning, testing, practicing, completed
+                "lessons_completed": [],
+                "test_attempts": [],
+                "overall_progress": "0%",
+                "last_updated": datetime.now().isoformat()
+            }
+    
+    @staticmethod
+    def save_student_vidya_progress(student_name: str, vidya: str, progress: dict):
+        """Save a student's progress in a specific vidya."""
+        safe_name = "_".join(student_name.strip().split())
+        progress_path = os.path.join("data", f"{safe_name}_vidya_{vidya}.json")
+        progress["last_updated"] = datetime.now().isoformat()
+        
+        os.makedirs(os.path.dirname(progress_path), exist_ok=True)
+        try:
+            with open(progress_path, "w", encoding="utf-8") as f:
+                json.dump(progress, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"[ERROR] Could not save vidya progress: {e}")
+    
+    @staticmethod
+    def get_overall_progress_percentage(student_name: str, vidya: str) -> str:
+        """Calculate overall progress percentage for a vidya."""
+        progress = VidyaLessonSystem.load_student_vidya_progress(student_name, vidya)
+        total_levels = 5
+        completed_levels = len(progress["lessons_completed"])
+        percentage = (completed_levels / total_levels) * 100
+        return f"{int(percentage)}%"
+
 
 def detect_language(text: str) -> str:
     """Detect language using Unicode character ranges - MOST RELIABLE METHOD."""
@@ -832,9 +1406,6 @@ def ask_drona(q: Query):
         detected_lang = detect_language(q.question)
         lang = q.lang.lower() if q.lang else detected_lang
         mode = q.mode.lower() if q.mode else "samvad"
-        if mode not in GURU_PERSONAS:
-            print(f"[DEBUG] Invalid mode '{mode}', defaulting to 'samvad'")
-            mode = "samvad"
         mode_name = MODE_NAMES.get(mode, mode)
 
         # -----------------------------------------------------------------
@@ -859,6 +1430,21 @@ def ask_drona(q: Query):
                 final_answer = f"Your name is {q.student_name}, my disciple. You have entered my ashram with this identity. Now, use this name to build your legacy through learning and dedication."
             else:
                 final_answer = "You have not yet told me your name, young disciple. You stand anonymous in my presence, but that will change when you commit to your learning."
+            return {
+                "language": supported_langs.get(lang, "English"),
+                "mode": mode_name,
+                "answer": final_answer,
+                "ai_used": False,
+                "profile": {}
+            }
+
+        # Guardrail: Guru Dronacharya should not answer modern-tech questions directly.
+        if _is_modern_topic(question_lower):
+            final_answer = (
+                "Shishya, I am of the Mahabharata age. I do not speak of your modern devices. "
+                "Ask instead: how to sharpen focus, discipline, ethics, courage, and strategy - "
+                "these govern every age."
+            )
             return {
                 "language": supported_langs.get(lang, "English"),
                 "mode": mode_name,
@@ -959,37 +1545,31 @@ def ask_drona(q: Query):
         if q.vidya_mode and q.vidya:
             # VIDYA MODE: Use specialized learn/test prompts
             ai_prompt = build_vidya_prompt(q.question, q.vidya, q.vidya_mode, combined_history)
-            print(f"[DEBUG] Vidya {q.vidya_mode.upper()} mode - {q.vidya}")
-            print(f"[DEBUG] Current mode: vidya | Vidya type: {q.vidya}")
         else:
             # STANDARD MODE: Use regular guru prompt with current mode
             ai_prompt = build_guru_prompt(q.question, mode, combined_history)
-            print(f"[DEBUG] Standard mode - {mode}")
-            print(f"[DEBUG] Current mode: {mode} | Vidya: {q.vidya or 'none'}")
         
-        print(f"[DEBUG] Sending prompt to Ollama API...")
-        print(f"[DEBUG] Prompt length: {len(ai_prompt)} characters")
-        
-        ai_response = call_ollama(ai_prompt, timeout=OLLAMA_TIMEOUT)
+        ai_response = call_ollama(ai_prompt, timeout=OLLAMA_TIMEOUT, question=q.question)
         if ai_response:
             final_answer = clean_ollama_response(ai_response)
-            print(f"[DEBUG] Response processed successfully")
+            ai_worked = True
         else:
-            print(f"[ERROR] Ollama returned no response")
-            final_answer = "I apologize, Shishya. The connection to divine knowledge faltered. Please try again."
+            # If Ollama fails even with fallback, generate a guru-like response
+            print("[FALLBACK] Using generic guru response")
+            final_answer = generate_generic_guru_response(q.question, mode)
+            ai_worked = False  # Mark as not using real AI, but provide meaningful response
 
         # -----------------------------------------------------------------
-        # Persist interaction
+        # Persist interaction - save responses (both AI and fallback)
         # -----------------------------------------------------------------
         if q.student_name:
             ConversationLog.save_student_interaction(q.student_name, q.question, final_answer, mode, lang)
 
-        print(f"[DEBUG] Response ready to return")
         return {
             "language": supported_langs.get(lang, "English"),
             "mode": mode_name,
             "answer": final_answer,
-            "ai_used": True
+            "ai_used": ai_worked
         }
     except Exception as e:
         print(f"[ERROR] ask_drona failed: {str(e)}")
@@ -1131,6 +1711,120 @@ class HeritageQuestion(BaseModel):
     student_name: str
     category: str = "culture"
 
+class PoseAnalysis(BaseModel):
+    """Model for real-time camera pose analysis during lessons"""
+    student_name: str
+    vidya_id: str
+    lesson_title: str
+    frame_image: str  # Base64 encoded JPEG
+    frame_count: int = 0
+
+
+POSE_RUNTIME_STATE = {}
+
+
+def _decode_frame_from_base64(frame_image: str):
+    if not CV_AVAILABLE or not frame_image:
+        return None
+    try:
+        encoded = frame_image.split(",", 1)[1] if "," in frame_image else frame_image
+        raw = base64.b64decode(encoded)
+        np_arr = np.frombuffer(raw, np.uint8)
+        return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    except Exception:
+        return None
+
+
+def _camera_grounded_feedback(vidya_id: str, movement: float, brightness: float, edge_density: float) -> str:
+    if brightness < 35:
+        return "I cannot see your form clearly. Increase light and face the camera."
+
+    active_body_vidyas = {"dhanur", "khadga", "gada"}
+    stillness_vidyas = {"dhyana"}
+
+    if vidya_id in active_body_vidyas:
+        if movement < 2.0:
+            return "You are too still, as if seated. Rise into stance and begin the practice movement now."
+        if movement > 18.0:
+            return "Your movement is rushed. Slow down and hold your form for control."
+        if edge_density < 0.05:
+            return "Your body outline is unclear. Step back so your full posture is visible."
+        return "Good. I can see active practice. Keep your spine steady and movement controlled."
+
+    if vidya_id in stillness_vidyas:
+        if movement > 8.0:
+            return "For Dhyana, reduce movement. Sit still and return attention to breath."
+        return "Your stillness is improving. Keep the head aligned and breath calm."
+
+    # Non-camera-heavy vidyas: coaching based on visible engagement
+    if movement < 2.0:
+        return "I observe little action. Begin the instructed exercise with intent."
+    return "I observe your effort. Continue with deliberate, disciplined practice."
+
+@app.post("/analyze-pose")
+def analyze_pose(data: PoseAnalysis):
+    """
+    Analyze student's pose/form in real-time during camera-based lessons.
+    
+    Called every 1 second by GuruCameraMonitor component while lesson is active.
+    Guru analyzes student's form and provides real-time feedback.
+    """
+    try:
+        student_name = data.student_name or "Student"
+        vidya_id = (data.vidya_id or "dhanur").lower()
+        lesson_title = data.lesson_title or "Lesson"
+        state_key = f"{student_name}:{vidya_id}"
+
+        frame = _decode_frame_from_base64(data.frame_image)
+        movement = 0.0
+        brightness = 75.0
+        edge_density = 0.1
+
+        if frame is not None and CV_AVAILABLE:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            brightness = float(np.mean(gray))
+            edges = cv2.Canny(gray, 70, 140)
+            edge_density = float(np.mean(edges > 0))
+
+            prev = POSE_RUNTIME_STATE.get(state_key, {}).get("prev_gray")
+            if prev is not None and prev.shape == gray.shape:
+                diff = cv2.absdiff(gray, prev)
+                movement = float(np.mean(diff))
+            POSE_RUNTIME_STATE[state_key] = {"prev_gray": gray}
+
+        feedback_message = _camera_grounded_feedback(
+            vidya_id=vidya_id,
+            movement=movement,
+            brightness=brightness,
+            edge_density=edge_density
+        )
+
+        return {
+            "status": "success",
+            "feedback": feedback_message,
+            "frame_analyzed": data.frame_count,
+            "vidya": vidya_id,
+            "lesson": lesson_title,
+            "metrics": {
+                "movement": round(movement, 2),
+                "brightness": round(brightness, 2),
+                "edge_density": round(edge_density, 4)
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+
+    except Exception as e:
+        print(f"[ERROR] Pose analysis failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Return fallback feedback even on error
+        return {
+            "status": "error",
+            "feedback": "Continue your practice. I observe your dedication.",
+            "error": str(e)
+        }
+
 @app.post("/save_heritage")
 def save_heritage(data: HeritageQuestion):
     """Save culture/history related questions to heritage.json"""
@@ -1195,6 +1889,201 @@ def get_system_info():
             "Multi-language support (English, Hindi, Telugu, etc.)",
             "Unicode and special character support"
         ]
+    }
+
+# ============================================================================
+# VIDYA LEARNING ENDPOINTS
+# ============================================================================
+
+@app.post("/vidya/start")
+def start_vidya(student_name: str, vidya: str):
+    """Start or resume learning a vidya."""
+    print(f"[DEBUG] Starting vidya {vidya} for {student_name}")
+    
+    if not student_name or not vidya:
+        return {"status": "error", "message": "student_name and vidya required"}
+    
+    progress = VidyaLessonSystem.load_student_vidya_progress(student_name, vidya)
+    
+    vidya_data = VidyaLessonSystem.VIDYA_LESSONS.get(vidya)
+    if not vidya_data:
+        return {"status": "error", "message": f"Vidya '{vidya}' not found"}
+    
+    return {
+        "status": "success",
+        "vidya_name": vidya_data.get("name", vidya),
+        "current_level": progress["current_level"],
+        "current_lesson": progress["current_lesson"],
+        "overall_progress": VidyaLessonSystem.get_overall_progress_percentage(student_name, vidya),
+        "stage": progress["stage"],
+        "message": f"Welcome to {vidya_data.get('name')}. Let us begin your journey."
+    }
+
+@app.post("/vidya/get-lesson")
+def get_lesson(student_name: str, vidya: str, level: Optional[int] = None, lesson: Optional[int] = None):
+    """Get the next lesson or a specific lesson."""
+    progress = VidyaLessonSystem.load_student_vidya_progress(student_name, vidya)
+    
+    if level is None:
+        level = progress["current_level"]
+    if lesson is None:
+        lesson = progress["current_lesson"]
+    
+    lesson_data = VidyaLessonSystem.get_lesson_for_vidya(vidya, level, lesson)
+    
+    if not lesson_data:
+        return {"status": "error", "message": "Lesson not found"}
+    
+    # Build guru prompt for teaching
+    guru_prompt = f"""
+You are Guru Dronacharya teaching {vidya} Vidya Level {level}.
+
+LESSON DELIVERY MODE:
+You are teaching the following lesson:
+
+TITLE: {lesson_data['title']}
+CONTENT: {lesson_data['content']}
+
+KEY POINTS TO EMPHASIZE: {', '.join(lesson_data['key_points'])}
+
+Your teaching style:
+1. Start by grabbing the student's attention with a powerful opening
+2. Explain the core concept clearly (2-3 sentences max)
+3. Give a real example from the Mahabharata or warrior philosophy
+4. End with a question: "Do you understand this principle? Are you ready to practice?"
+5. Remember: The student is learning from you - be authoritative yet encouraging
+
+Keep your language simple but profound. The student should feel they are learning from a master who cares about their progress.
+"""
+    
+    progress["stage"] = "learning"
+    VidyaLessonSystem.save_student_vidya_progress(student_name, vidya, progress)
+    
+    return {
+        "status": "success",
+        "level": level,
+        "lesson_number": lesson,
+        "lesson_title": lesson_data["title"],
+        "guru_teaching_prompt": guru_prompt,
+        "key_points": lesson_data["key_points"],
+        "practice_focus": lesson_data["practice_focus"]
+    }
+
+@app.post("/vidya/mark-lesson-complete")
+def mark_lesson_complete(student_name: str, vidya: str, level: int):
+    """Mark a level as completed."""
+    progress = VidyaLessonSystem.load_student_vidya_progress(student_name, vidya)
+    
+    # Record completion
+    completion = {
+        "level": level,
+        "completed_at": datetime.now().isoformat(),
+        "stage": "lesson_complete"
+    }
+    progress["lessons_completed"].append(completion)
+    progress["stage"] = "testing"
+    
+    VidyaLessonSystem.save_student_vidya_progress(student_name, vidya, progress)
+    
+    return {
+        "status": "success",
+        "message": f"Level {level} lesson completed! Time for assessment.",
+        "next_stage": "testing"
+    }
+
+@app.post("/vidya/get-test")
+def get_test(student_name: str, vidya: str, level: int):
+    """Get test questions for a level."""
+    test_questions = VidyaLessonSystem.get_test_questions(vidya, level)
+    
+    if not test_questions:
+        return {"status": "error", "message": "Test not found"}
+    
+    # Randomly select 2-3 questions
+    selected = random.sample(test_questions, min(3, len(test_questions)))
+    
+    guru_test_prompt = f"""
+You are Guru Dronacharya assessing a disciple's understanding of {vidya} Vidya Level {level}.
+
+TEST QUESTIONS:
+{chr(10).join(f'{i+1}. {q}' for i, q in enumerate(selected))}
+
+ASSESSMENT STYLE:
+1. Ask questions one at a time
+2. Listen carefully to the student's answer
+3. Evaluate their understanding (PASS/NEEDS_REVIEW)
+4. If they struggle, ask a simpler question or reteach
+5. If they excel, ask a deeper question
+6. Be a demanding guru - test them thoroughly
+7. End with: "You [PASS/NEED TO STUDY MORE]. [Specific feedback]"
+
+Remember: You are assessing not just knowledge, but wisdom about applying the knowledge.
+"""
+    
+    progress = VidyaLessonSystem.load_student_vidya_progress(student_name, vidya)
+    progress["stage"] = "testing"
+    VidyaLessonSystem.save_student_vidya_progress(student_name, vidya, progress)
+    
+    return {
+        "status": "success",
+        "level": level,
+        "test_questions": selected,
+        "guru_assessment_prompt": guru_test_prompt
+    }
+
+@app.post("/vidya/evaluate-test")
+def evaluate_test(student_name: str, vidya: str, level: int, student_answer: str):
+    """Evaluate student's test answer."""
+    # This would use AI to evaluate the answer
+    evaluation_prompt = f"""
+A student answered this test question:
+{student_answer}
+
+Based on their answer, determine:
+1. Do they UNDERSTAND the concept? (YES/NO)
+2. How deep is their understanding? (SUPERFICIAL/ADEQUATE/DEEP)
+3. What specific feedback should the guru give?
+
+Respond ONLY in this JSON format:
+{{
+    "passed": true/false,
+    "understanding_level": "superficial|adequate|deep",
+    "feedback": "specific feedback message"
+}}
+"""
+    
+    return {
+        "status": "success",
+        "passed": True,  # This would be evaluated by AI
+        "understanding_level": "adequate",
+        "feedback": "Good understanding. Let's move to practice.",
+        "next_stage": "practicing"
+    }
+
+@app.post("/vidya/progress/{student_name}")
+def get_vidya_progress(student_name: str):
+    """Get student's progress across all vidyas."""
+    data_dir = "data"
+    vidya_progress = {}
+    
+    safe_name = "_".join(student_name.strip().split())
+    
+    try:
+        for filename in os.listdir(data_dir):
+            if filename.startswith(safe_name) and filename.endswith(".json") and "vidya" in filename:
+                vidya_name = filename.replace(f"{safe_name}_vidya_", "").replace(".json", "")
+                progress = VidyaLessonSystem.load_student_vidya_progress(student_name, vidya_name)
+                vidya_progress[vidya_name] = {
+                    "current_level": progress["current_level"],
+                    "stage": progress["stage"],
+                    "progress_percentage": VidyaLessonSystem.get_overall_progress_percentage(student_name, vidya_name)
+                }
+    except Exception as e:
+        print(f"[ERROR] Could not get vidya progress: {e}")
+    
+    return {
+        "student_name": student_name,
+        "vidya_progress": vidya_progress if vidya_progress else "No vidya learning started yet"
     }
 
 @app.get("/verify_storage/{student_name}")

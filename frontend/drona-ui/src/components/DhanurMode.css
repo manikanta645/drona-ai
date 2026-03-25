@@ -11,6 +11,8 @@
   font-family: 'Georgia', 'Garamond', serif;
   color: #c9e5d0;
   position: relative;
+  margin-right: 0;
+  padding-right: 40px;
 }
 
 .dhanur-container::before {
@@ -68,6 +70,8 @@
   position: relative;
   z-index: 2;
   overflow: hidden;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 /* LEFT: TECHNIQUE PANEL */
