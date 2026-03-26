@@ -65,6 +65,9 @@ function App() {
   const streamRef = useRef(null);
   const chatEndRef = useRef(null);
   const vidyaBtnRef = useRef(null);
+  const guruVoiceCacheRef = useRef({});
+  const lastGuruVoiceNameRef = useRef(null);
+  const guruVoiceDebugOnceRef = useRef(false);
   // eslint-disable-next-line no-unused-vars
   const [vidyaFlyoutTop, setVidyaFlyoutTop] = useState(0);
   const [currentAstra, setCurrentAstra] = useState('Brahmastra');
@@ -246,13 +249,15 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // 🎵 Ensure voices are loaded for text-to-speech
+    let voicesUnsubscribe = null;
     if (window.speechSynthesis) {
       const loadVoices = () => window.speechSynthesis.getVoices();
       loadVoices();
       window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
-      return () => window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
+      voicesUnsubscribe = () => window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
     }
-    
+
+    // Handle student initialization
     const currentStudent = studentMemory.getCurrentStudent();
     
     if (currentStudent) {
@@ -279,6 +284,13 @@ function App() {
       setShowStudentSelector(true);
       setShowInitiation(false);
     }
+
+    // Cleanup function for voice listener
+    return () => {
+      if (voicesUnsubscribe) {
+        voicesUnsubscribe();
+      }
+    };
   }, []);
 
 
@@ -358,45 +370,38 @@ function App() {
     return cleaned;
   };
 
-  // 🎙️ Helper to detect if a voice is likely male/deeper (similar to Indian language voices)
-  // For Guru Dronacharya tone, we need deep male voices
-  // AGGRESSIVE: Assume MALE unless explicitly female
+  // 🎙️ Voice gender detection (STRICT)
+  // We MUST not pick female voices when user wants male.
+  const isFemaleVoice = (voiceName) => {
+    if (!voiceName) return false;
+    const name = voiceName.toLowerCase();
+    const femaleIndicators = [
+      "female", "zira", "hazel", "susan", "linda", "heather", "priya",
+      "neha", "priyanka", "sara", "helen", "catherine", "kate", "anna",
+      "emily", "lisa", "michelle", "jane", "monica", "karen", "samantha",
+      "victoria", "sarah", "lucy", "woman", "women", "girl", "lady",
+      "narrator female",
+      // Common Indian-English female voice name on Windows
+      "heera",
+      // Common Microsoft India female voices
+      "neerja"
+    ];
+    return femaleIndicators.some(indicator => name.includes(indicator));
+  };
+
+  // Only return true when we have strong evidence it's male.
   const isMaleVoice = (voiceName) => {
     if (!voiceName) return false;
     const name = voiceName.toLowerCase();
-    
-    // STRICT female indicators - if ANY match, it's definitely female
-    const femaleIndicators = [
-      "female", "zira", "hazel", "susan", "linda", "heather", "priya", 
-      "neha", "priyanka", "sara", "helen", "catherine", "kate", "anna",
-      "emily", "lisa", "michelle", "jane", "monica", "female voice",
-      "karen", "samantha", "victoria", "susan", "sarah", "lucy",
-      "narrator female", "woman", "women", "girl", "lady"
-    ];
-    
-    // Check if voice name contains STRICT female indicators
-    const isFemale = femaleIndicators.some(indicator => name.includes(indicator));
-    if (isFemale) {
-      return false; // Definitely female
-    }
-    
-    // Male indicators (helpful but not required)
+    if (isFemaleVoice(name)) return false;
     const maleIndicators = [
-      "male", "david", "mark", "james", "daniel", "paul", "john", "peter", 
-      "michael", "thomas", "richard", "ravi", "karan", "arjun", "vikram",
-      "aditya", "raj", "mohan", "kumar", "guru", "acharya", "drona",
-      "microsoft david", "google male", "male voice", "deep", "baritone",
-      "bass", "low", "man", "men", "guy", "sir", "master", "narrator male"
+      "male", "ravi", "david", "mark", "james", "daniel", "paul", "john",
+      "peter", "michael", "thomas", "richard", "george", "hemant", "arjun",
+      "vikram", "aditya", "raj", "mohan", "kumar", "narrator male",
+      // Common Microsoft India male voices
+      "prabhat"
     ];
-    
-    // Check if voice name contains male indicators
-    if (maleIndicators.some(indicator => name.includes(indicator))) {
-      return true; // Definitely male
-    }
-    
-    // DEFAULT: If no clear female indicators, assume MALE (aggressive approach)
-    // This is important because many voice names don't specify gender
-    return true;
+    return maleIndicators.some(indicator => name.includes(indicator));
   };
 
   // 🎙️ Get a sample Indian language voice to match tone
@@ -644,17 +649,121 @@ function App() {
     const langMap = { hi: "hi-IN", te: "te-IN", ta: "ta-IN", bn: "bn-IN", ml: "ml-IN", kn: "kn-IN", gu: "gu-IN", mr: "mr-IN", pa: "pa-IN", en: "en-IN" };
     utter.lang = langMap[lang] || "en-IN";
 
-    // ⚡ FAST Voice Selection: Just use first available voice for the language
     const voices = window.speechSynthesis.getVoices();
     if (voices.length > 0) {
-      const targetLang = utter.lang;
-      const voice = voices.find(v => v.lang.toLowerCase() === targetLang.toLowerCase()) || voices[0];
-      utter.voice = voice;
+      const targetLang = (utter.lang || "en-IN").toLowerCase();
+      const targetBase = targetLang.split("-")[0];
+
+      // Use "not-female" pool for stability; strict male token detection can miss legit male voices.
+      const notFemale = voices.filter(v => !isFemaleVoice(v.name));
+      const maleVoices = notFemale.filter(v => isMaleVoice(v.name));
+
+      const cacheKey = targetLang;
+      // Do NOT cache en-IN; we want the strict selector every time (prevents "robot" getting stuck).
+      if (targetLang !== "en-in") {
+        const cachedName = guruVoiceCacheRef.current?.[cacheKey];
+        if (cachedName) {
+          const cachedVoice =
+            maleVoices.find(v => v.name === cachedName) ||
+            notFemale.find(v => v.name === cachedName);
+          if (cachedVoice) {
+            utter.voice = cachedVoice;
+            utter.lang = cachedVoice.lang || utter.lang;
+          }
+        }
+      }
+
+      // Always keep a stable "perfect" English male voice as global fallback.
+      // This matches the earlier strict logic: prefer Ravi + provider family, with a one-time debug dump.
+      const referenceVoice = getIndianLanguageVoice();
+      const refProvider = referenceVoice ? getVoiceProvider(referenceVoice.name) : null;
+      const providerMatch = (v) => {
+        if (!refProvider) return false;
+        const p = getVoiceProvider(v.name);
+        return p && p.toLowerCase() === refProvider.toLowerCase();
+      };
+
+      const enInNotFemale = notFemale.filter(v => (v.lang || "").toLowerCase() === "en-in");
+      const enInMaleVoices = maleVoices.filter(v => (v.lang || "").toLowerCase() === "en-in");
+
+      if (!guruVoiceDebugOnceRef.current) {
+        guruVoiceDebugOnceRef.current = true;
+        console.log("🎧 TTS en-IN candidates (not-female):", enInNotFemale.map(v => `${v.name} (${v.lang})`));
+        console.log("🎧 TTS en-IN male candidates:", enInMaleVoices.map(v => `${v.name} (${v.lang})`));
+        console.log("🎯 Reference voice/provider:", referenceVoice?.name, "| provider:", refProvider);
+      }
+
+      const scoreEnglishMale = (v) => {
+        const n = (v.name || "").toLowerCase();
+        let s = 0;
+        // Prefer Ravi first (typical Indian-accent male on Windows), then David.
+        if (n.includes("ravi")) s += 100;
+        else if (n.includes("david")) s += 92;
+        else if (n.includes("hemant")) s += 88;
+        else if (n.includes("arjun")) s += 86;
+        else if (n.includes("vikram")) s += 84;
+        else if (n.includes("aditya")) s += 82;
+        else s += 70;
+
+        // Strongly prefer matching the provider family of the reference Indian voice (keeps the same accent "feel").
+        if (providerMatch(v)) s += 18;
+        // Provider hint: Microsoft voices on Windows tend to be the most stable.
+        if (n.includes("microsoft")) s += 6;
+        return s;
+      };
+
+      // Strict preference: Ravi en-IN, then same-provider male en-IN, then other male fallbacks.
+      // IMPORTANT: do not fall back to not-female for en-IN, otherwise we can still land on a female voice.
+      const englishMale =
+        enInMaleVoices.find(v => (v.name || "").toLowerCase().includes("ravi")) ||
+        enInMaleVoices.find(v => (v.name || "").toLowerCase().includes("prabhat")) ||
+        enInMaleVoices.find(v => providerMatch(v)) ||
+        [...enInMaleVoices].sort((a, b) => scoreEnglishMale(b) - scoreEnglishMale(a))[0] ||
+        // If there is no en-IN male voice at all, fall back to any IN-locale male voice (keeps male, may lose accent)
+        maleVoices.find(v => (v.lang || "").toUpperCase().includes("IN")) ||
+        maleVoices[0] ||
+        null;
+
+      if (!utter.voice) {
+        const pickFirst = (pool) => (pool && pool.length > 0 ? pool[0] : null);
+
+        const exactMale = maleVoices.filter(v => (v.lang || "").toLowerCase() === targetLang);
+        const baseMale = maleVoices.filter(v => (v.lang || "").toLowerCase().startsWith(targetBase));
+        const exactNotFemale = notFemale.filter(v => (v.lang || "").toLowerCase() === targetLang);
+        const baseNotFemale = notFemale.filter(v => (v.lang || "").toLowerCase().startsWith(targetBase));
+
+        // STRICT: never pick non-male voices. If no male voice exists for that language,
+        // fall back to the stable English male voice (keeps Guru male always).
+        const chosen =
+          // For English: use strict englishMale cascade every time
+          (targetLang === "en-in" ? englishMale : null) ||
+          // Otherwise: exact/base male
+          pickFirst(exactMale) ||
+          pickFirst(baseMale) ||
+          // If no male voice exists for that language, allow not-female in-language (still prevents female drift)
+          pickFirst(exactNotFemale) ||
+          pickFirst(baseNotFemale) ||
+          // Final fallback: English male cascade
+          englishMale;
+
+        if (chosen) {
+          utter.voice = chosen;
+          if (chosen.lang) utter.lang = chosen.lang;
+          if (targetLang !== "en-in") {
+            guruVoiceCacheRef.current[cacheKey] = chosen.name;
+          }
+        }
+      }
+
+      if (lastGuruVoiceNameRef.current !== utter.voice?.name) {
+        lastGuruVoiceNameRef.current = utter.voice?.name;
+        console.log("🎯 TTS Guru voice:", utter.voice?.name, "| Lang:", utter.voice?.lang, "| Target:", targetLang);
+      }
     }
 
-    // ⚡ Set speaking parameters
-    utter.rate = 0.9;   // Slightly slower for clarity
-    utter.pitch = lang === "en" ? 0.8 : 1.0;
+    // ⚡ Natural guru delivery (avoid robotic pitch)
+    utter.rate = 0.95;
+    utter.pitch = 1.0;
     utter.volume = 1.0;
 
     // Speak!
@@ -2419,7 +2528,7 @@ function App() {
         )}
 
         <footer>
-          <span>✨ Powered by Mistral + DRONA RAG Engine</span>
+          <span>✨ Powered by Ollama + DRONA RAG Engine</span>
           <br />
           <span>Multilingual AI · Ancient Knowledge · Modern Intelligence</span>
         </footer>
